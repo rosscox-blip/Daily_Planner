@@ -275,7 +275,7 @@ footer{text-align:center;padding:24px 16px;color:var(--muted);font-size:.72rem;
     </div>
     <div class="hdr-ts">
       <span id="current-time" class="cur-time">--:--</span>
-      <span class="upd-time">28 Jul 2026, 14:55</span>
+      <span class="upd-time">28 Jul 2026, 15:07</span>
       <small>Updates hourly</small>
     </div>
     <button id="theme-btn" class="theme-btn" onclick="toggleTheme()">&#9728; Light</button>
@@ -350,7 +350,7 @@ footer{text-align:center;padding:24px 16px;color:var(--muted);font-size:.72rem;
 
 <footer>
   Daily Planner &mdash; Software Customisations &mdash; Flowbird / Arrive &nbsp;&middot;&nbsp;
-  Last updated 28 Jul 2026, 14:55 &nbsp;&middot;&nbsp; Updates hourly
+  Last updated 28 Jul 2026, 15:07 &nbsp;&middot;&nbsp; Updates hourly
 </footer>
 
 <script>
@@ -462,6 +462,7 @@ function _loadData(user){
 }
 
 if(window.netlifyIdentity){
+  netlifyIdentity.init({APIUrl:'https://statuesque-lily-8e6e95.netlify.app/.netlify/identity'});
   netlifyIdentity.on('init',  function(u){ if(u) _loadData(u); else _showLogin(); });
   netlifyIdentity.on('login', function(u){ netlifyIdentity.close(); _loadData(u); });
   netlifyIdentity.on('logout',function(){ _showLogin(); });

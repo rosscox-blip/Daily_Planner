@@ -34,7 +34,7 @@ footer{margin-top:40px;color:var(--muted);font-size:.72rem;text-align:center}
 <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">&#9728; Light</button>
 <h1>Team Planner</h1>
 <div class="sub">Software Customisations &mdash; Flowbird / Arrive<br>
-Updated 28 Jul 2026, 14:55 &middot; Refreshes hourly</div>
+Updated 28 Jul 2026, 15:07 &middot; Refreshes hourly</div>
 <div class="links"><a href="emie.html" class="member-link"><span class="mi">E</span><span class="mn">Emie</span></a>
 <a href="jay.html" class="member-link"><span class="mi">J</span><span class="mn">Jay</span></a>
 <a href="rob.html" class="member-link"><span class="mi">R</span><span class="mn">Rob</span></a>
@@ -46,11 +46,8 @@ Updated 28 Jul 2026, 14:55 &middot; Refreshes hourly</div>
 <script>
 (function(){var t=localStorage.getItem('planner_theme')||'dark';document.documentElement.setAttribute('data-theme',t);var b=document.getElementById('theme-btn');if(b)b.innerHTML=t==='dark'?'&#9728; Light':'&#9790; Dark';})();
 function toggleTheme(){var t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',t);localStorage.setItem('planner_theme',t);var b=document.getElementById('theme-btn');if(b)b.innerHTML=t==='dark'?'&#9728; Light':'&#9790; Dark';}
-var PAGE_MAP={"emievic.yousaf@arrive.com":"emie.html","jayprakash.basaliyal@arrive.com":"jay.html","robert.smith@arrive.com":"rob.html","ross.cox@arrive.com":"ross.html","sofia.bater@arrive.com":"sofia.html","suna.olgac@arrive.com":"suna.html","tristan.pointer@arrive.com":"tristan.html"};
 if(window.netlifyIdentity){
-  function _redir(u){if(u&&PAGE_MAP[u.email.toLowerCase()])window.location.href=PAGE_MAP[u.email.toLowerCase()];}
-  netlifyIdentity.on('init',_redir);
-  netlifyIdentity.on('login',function(u){netlifyIdentity.close();_redir(u);});
+  netlifyIdentity.init({APIUrl:'https://statuesque-lily-8e6e95.netlify.app/.netlify/identity'});
 }
 </script>
 </body>
