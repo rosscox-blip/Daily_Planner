@@ -12,6 +12,8 @@ const EMAIL_MAP = {
   'sofia.bater@arrive.com':          'sofia',
   'suna.olgac@arrive.com':           'suna',
   'tristan.pointer@arrive.com':      'tristan',
+  'joe.PLACEHOLDER@arrive.com':      'joe',    // TODO: update with real email
+  'anna.PLACEHOLDER@arrive.com':     'anna',   // TODO: update with real email
 };
 
 exports.handler = async (event, context) => {
