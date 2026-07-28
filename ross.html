@@ -4,11 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ross &mdash; Work Planner</title>
-<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <style>
-/* Hide the default Netlify Identity floating button */
-[data-netlify-identity-button]{display:none!important}
-
 :root{
   --bg:#0e0e20;--bg2:#13132e;--card:#1a1a3a;--border:#26265a;
   --text:#d8d8f0;--muted:#6060a0;--pink:#e91e8c;
@@ -38,27 +34,26 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
   display:flex;align-items:center;justify-content:center;z-index:9999}
 [data-theme="light"] #auth-overlay{background:rgba(220,220,240,.97)}
 #auth-box{background:var(--card);border:1px solid var(--border);border-radius:12px;
-  padding:36px 32px;width:340px;text-align:center;display:flex;
+  padding:36px 32px;width:320px;text-align:center;display:flex;
   flex-direction:column;align-items:center;gap:14px}
 #auth-avatar{width:56px;height:56px;border-radius:50%;background:var(--pink);
   display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff}
 #auth-name{font-size:1.1rem;font-weight:700}
-#auth-sub{color:var(--muted);font-size:.82rem;line-height:1.5}
+#auth-sub{color:var(--muted);font-size:.82rem}
+#pw-input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);
+  padding:10px 14px;border-radius:7px;font-size:.9rem;text-align:center;letter-spacing:.1em}
+#pw-input:focus{outline:none;border-color:var(--pink)}
 #auth-login-btn{width:100%;background:var(--pink);color:#fff;border:none;
   padding:11px;border-radius:7px;font-size:.9rem;font-weight:700;cursor:pointer;transition:opacity .15s}
 #auth-login-btn:hover{opacity:.85}
-#auth-wrong{display:none;flex-direction:column;gap:10px;width:100%;align-items:center}
-#auth-wrong p{font-size:.8rem;color:var(--muted);line-height:1.4}
-#auth-logout-btn{background:none;border:1px solid var(--border);color:var(--muted);
-  padding:7px 18px;border-radius:6px;font-size:.8rem;cursor:pointer}
-#auth-logout-btn:hover{border-color:var(--red);color:var(--red)}
+#auth-error{color:var(--red);font-size:.78rem;min-height:1em}
 
 /* Header */
 .hdr{background:var(--bg2);border-bottom:2px solid var(--pink);padding:16px 20px}
 .hdr-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
 .avatar{width:46px;height:46px;border-radius:50%;background:var(--pink);display:flex;
         align-items:center;justify-content:center;font-size:18px;font-weight:700;
-        color:#fff;flex-shrink:0;cursor:pointer;transition:opacity .15s;position:relative}
+        color:#fff;flex-shrink:0;cursor:pointer;transition:opacity .15s}
 .avatar:hover{opacity:.85}
 #avatar-color-picker{position:fixed;width:0;height:0;opacity:0;pointer-events:none}
 .hdr-name{font-size:1.35rem;font-weight:700}
@@ -112,14 +107,13 @@ section{margin-bottom:52px}
 .pc.ovd {background:var(--ovd-card);border-color:var(--ovd-border)}
 .pc-top{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
 .pc-ref{font-size:.95rem;font-weight:700;font-family:monospace;color:var(--pink)}
-.pc-ref a{color:inherit;text-decoration:none}.pc-ref a:hover{text-decoration:underline}
 .pc-cust{font-size:.85rem;font-weight:600}
 .pc-dates{display:flex;flex-direction:column;gap:3px;margin-top:2px}
 .pc-date{font-size:.75rem;color:var(--text);display:flex;gap:6px}
 .pc-dl{color:var(--muted);min-width:68px;flex-shrink:0}
 .pc-bottom{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:2px}
 
-/* Accordion (priority cards) */
+/* Accordion */
 details.acc{border-top:1px solid var(--border);margin-top:2px}
 details.acc summary{font-size:.7rem;color:var(--muted);cursor:pointer;padding:5px 0 3px;
   list-style:none;display:flex;align-items:center;justify-content:space-between;
@@ -176,7 +170,6 @@ tr.rnmo td:first-child{border-left:3px solid var(--nmo)}
 tr.rhw  td:first-child{border-left:3px solid var(--hw)}
 tr.rcr  td:first-child{border-left:3px solid var(--cr)}
 .rc{font-family:monospace;color:var(--pink);font-weight:700;white-space:nowrap}
-.rc a{color:inherit;text-decoration:none}.rc a:hover{text-decoration:underline}
 .dc{white-space:nowrap;font-weight:600}
 .ovdt{color:var(--red)}.ambt{color:var(--amber)}.okt{color:var(--green)}.mut{color:var(--muted)}
 
@@ -206,7 +199,6 @@ footer{text-align:center;padding:24px 16px;color:var(--muted);font-size:.72rem;
 @media(max-width:600px){
   .pg{grid-template-columns:1fr}
   .hdr-ts{margin-left:0;width:100%;text-align:left}
-  .hdr-inner{gap:10px}
   th,td{padding:7px 8px}
   .nav a{padding:10px 14px;font-size:.72rem}
   .detail-pane{flex-direction:column;gap:12px}
@@ -220,18 +212,16 @@ footer{text-align:center;padding:24px 16px;color:var(--muted);font-size:.72rem;
   <div id="auth-box">
     <div id="auth-avatar">R</div>
     <div id="auth-name">Ross</div>
-    <div id="auth-sub">Log in with your work email to view your planner</div>
-    <button id="auth-login-btn">Log in with email</button>
-    <div id="auth-wrong">
-      <p id="auth-wrong-msg"></p>
-      <button id="auth-logout-btn">Sign out and try again</button>
-    </div>
+    <div id="auth-sub">Enter your password to view your planner</div>
+    <input type="password" id="pw-input" placeholder="Password" autocomplete="current-password">
+    <button id="auth-login-btn">Unlock</button>
+    <div id="auth-error"></div>
   </div>
 </div>
 
 <header class="hdr">
   <div class="hdr-inner">
-    <div class="avatar" id="member-avatar" title="Click to change avatar colour">R</div>
+    <div class="avatar" id="member-avatar" title="Click to change colour">R</div>
     <input type="color" id="avatar-color-picker">
     <div>
       <div class="hdr-name">Ross</div>
@@ -239,7 +229,7 @@ footer{text-align:center;padding:24px 16px;color:var(--muted);font-size:.72rem;
     </div>
     <div class="hdr-ts">
       <span id="current-time" class="cur-time">--:--</span>
-      <span class="upd-time">28 Jul 2026, 13:07</span>
+      <span class="upd-time">28 Jul 2026, 14:07</span>
       <small>Updates hourly</small>
     </div>
     <button id="theme-btn" class="theme-btn" onclick="toggleTheme()">&#9728; Light</button>
@@ -301,7 +291,7 @@ footer{text-align:center;padding:24px 16px;color:var(--muted);font-size:.72rem;
 
 <footer>
   Daily Planner &mdash; Software Customisations &mdash; Flowbird / Arrive &nbsp;&middot;&nbsp;
-  Last updated 28 Jul 2026, 13:07 &nbsp;&middot;&nbsp; Updates hourly
+  Last updated 28 Jul 2026, 14:07 &nbsp;&middot;&nbsp; Updates hourly
 </footer>
 
 <script>
@@ -350,42 +340,27 @@ setInterval(_tick,30000);
   });
 })();
 
-// ── Netlify Identity auth ─────────────────────────────────────────────────────
-var MEMBER_EMAIL = 'ross.cox@arrive.com';
-var _authOverlay = document.getElementById('auth-overlay');
-var _authSub     = document.getElementById('auth-sub');
-var _authWrong   = document.getElementById('auth-wrong');
-var _authWrongMsg= document.getElementById('auth-wrong-msg');
-var _loginBtn    = document.getElementById('auth-login-btn');
-var _logoutBtn   = document.getElementById('auth-logout-btn');
-
-function _checkAuth(user){
-  if(!user){
-    _authSub.style.display='';
-    _loginBtn.style.display='';
-    _authWrong.style.display='none';
-    _authOverlay.style.display='flex';
-  } else if(user.email.toLowerCase()!==MEMBER_EMAIL.toLowerCase()){
-    _authSub.style.display='none';
-    _loginBtn.style.display='none';
-    _authWrongMsg.textContent='You are signed in as '+user.email+'. This page belongs to '+MEMBER_EMAIL+'.';
-    _authWrong.style.display='flex';
-    _authOverlay.style.display='flex';
+// ── Password auth ─────────────────────────────────────────────────────────────
+var PW = 'fbm4ky96jd';
+var _overlay = document.getElementById('auth-overlay');
+if(sessionStorage.getItem('planner_auth_Ross')==='1'){
+  _overlay.style.display='none';
+}
+function _checkPw(val){
+  if(val.toLowerCase()===PW){
+    sessionStorage.setItem('planner_auth_Ross','1');
+    _overlay.style.display='none';
+    document.getElementById('auth-error').textContent='';
   } else {
-    _authOverlay.style.display='none';
+    document.getElementById('auth-error').textContent='Incorrect password — try again';
   }
 }
-
-if(window.netlifyIdentity){
-  netlifyIdentity.on('init',  function(u){ _checkAuth(u); });
-  netlifyIdentity.on('login', function(u){ netlifyIdentity.close(); _checkAuth(u); });
-  netlifyIdentity.on('logout',function(){  _checkAuth(null); });
-  _loginBtn.addEventListener('click', function(){ netlifyIdentity.open('login'); });
-  _logoutBtn.addEventListener('click',function(){ netlifyIdentity.logout(); });
-} else {
-  // netlify-identity-widget not available (local dev) — hide overlay
-  _authOverlay.style.display='none';
-}
+document.getElementById('auth-login-btn').addEventListener('click',function(){
+  _checkPw(document.getElementById('pw-input').value);
+});
+document.getElementById('pw-input').addEventListener('keydown',function(e){
+  if(e.key==='Enter') _checkPw(this.value);
+});
 
 // ── Data ──────────────────────────────────────────────────────────────────────
 var JOBS      = [{"reference": "SF-096900", "servicenow": "", "customer": "Rother", "location": "Various", "num_customisations": "", "num_machines": "14", "model": "CWT", "due_date": "29/05/2026", "due_date_iso": "2026-05-29", "requested_date": "29/05/2026", "go_live_date": "29/05/2026", "date_logged": "16/06/2026", "sort_bucket": 1, "days_in_queue": 42, "parts_delivery_date": "26/05/2026", "parts_in_stock": false, "due_from_delivery": false, "sla_deadline": "14/07/2026", "effective_deadline": "14/07/2026", "sla_breach": false, "go_live_unconfirmed": false, "unscheduled": false, "blanket_logged": false, "customer_chose_far_date": false, "is_asap": false, "is_tbc": false, "days_left": -60, "due_soon": true, "overdue": true, "allocated_to": "Ross", "status": "To Do", "order_type": "Hardware Upgrade", "source": "Hardware Upgrades", "comments": "07/05/2026", "sales_comments": "Discuss with Doug", "level": "L", "onecrmlink": "20070", "trackinglink": "SF-096900", "has_ref": true}, {"reference": "SF-104149", "servicenow": "", "customer": "Reigate & Banstead BC", "location": "Donyngs Car Park", "num_customisations": "NA", "num_machines": "NA", "model": "NEOPS", "due_date": "17/07/2026", "due_date_iso": "2026-07-17", "requested_date": "ASAP", "go_live_date": "??", "date_logged": "19/06/2026", "sort_bucket": 2, "days_in_queue": 39, "parts_delivery_date": "", "parts_in_stock": false, "due_from_delivery": false, "sla_deadline": "17/07/2026", "effective_deadline": "17/07/2026", "sla_breach": false, "go_live_unconfirmed": true, "unscheduled": true, "blanket_logged": false, "customer_chose_far_date": false, "is_asap": true, "is_tbc": false, "days_left": -11, "due_soon": true, "overdue": true, "allocated_to": "Ross", "status": "Blocked/On Hold", "order_type": "Change Request", "source": "Change Requests", "comments": "To add an additional free time tariff of 2 hours with 1 hour no return via PRM for 2 Strada Evo machines\n\nmc 49, 50 have PRM Software Ref (RB2C, RB2D respectivley) - So just changes to PRM - RC (mc 27 is non PRM - RB19 software & 29 does not exist) ?", "sales_comments": "", "level": "M", "onecrmlink": "24875", "trackinglink": "SF-104149", "has_ref": true}];
@@ -396,7 +371,6 @@ const CAP2W = 60;
 function esc(s){
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
-
 function daysLabel(j){
   if(j.unscheduled||j.days_left===null||j.days_left===undefined) return '<span class="mut">No date</span>';
   if(j.overdue) return '<span class="ovdt">'+Math.abs(j.days_left)+'d overdue</span>';
@@ -404,18 +378,15 @@ function daysLabel(j){
   if(j.days_left<=5)  return '<span class="ambt">'+j.days_left+'d left</span>';
   return '<span class="okt">'+j.days_left+'d</span>';
 }
-
 function typeBadge(t){
   if(t==='New Machine Order') return '<span class="b bnmo" title="New Machine Order">NMO</span>';
   if(t==='Hardware Upgrade')  return '<span class="b bhw" title="Hardware Upgrade">HW</span>';
   return '<span class="b bcr" title="Change Request">CR</span>';
 }
-
 function levelBadge(l){
   if(!l) return '<span class="mut">&mdash;</span>';
   return '<span class="b bl">'+esc(l)+' &middot; '+(LH[l.toUpperCase()]||'?')+'h</span>';
 }
-
 function getBand(j){
   if(j.unscheduled||j.days_left===null||j.days_left===undefined) return 'unscheduled';
   if(j.overdue)      return 'overdue';
@@ -423,7 +394,6 @@ function getBand(j){
   if(j.days_left<14) return 'next2w';
   return 'later';
 }
-
 function rowCls(j){
   if(j.order_type==='New Machine Order') return 'rnmo';
   if(j.order_type==='Hardware Upgrade')  return 'rhw';
@@ -439,15 +409,13 @@ function renderPriorities(){
       return (a.days_left!==null?a.days_left:9999)-(b.days_left!==null?b.days_left:9999);
     });
   document.getElementById('p-cnt').textContent=pjobs.length;
-
   const comm=pjobs.reduce((s,j)=>(j.status||'').toLowerCase()==='queued'?s:s+(LH[(j.level||'').toUpperCase()]||0),0);
   const pct=Math.min(100,Math.round(comm/CAP2W*100));
   const fc=pct>=100?'var(--red)':pct>=70?'var(--amber)':'var(--green)';
   const free=Math.max(0,CAP2W-comm);
   let html='<div class="cap"><div class="cap-lbl">Capacity &mdash; Next 2 Weeks</div>';
   html+='<div class="cap-bg"><div class="cap-fill" style="width:'+pct+'%;background:'+fc+'"></div></div>';
-  html+='<div class="cap-txt"><strong>'+comm+'h</strong> committed of <strong>'+CAP2W+'h</strong> available &mdash; <strong style="color:'+fc+'">'+free+'h free</strong></div></div>';
-
+  html+='<div class="cap-txt"><strong>'+comm+'h</strong> committed of <strong>'+CAP2W+'h</strong> &mdash; <strong style="color:'+fc+'">'+free+'h free</strong></div></div>';
   if(!pjobs.length){
     html+="<div class='p-empty'>&#10003; Nothing due in the next 2 weeks &mdash; you are on top of it!</div>";
   } else {
@@ -455,22 +423,19 @@ function renderPriorities(){
     pjobs.forEach(j=>{
       const tc=j.order_type==='New Machine Order'?'tnmo':j.order_type==='Hardware Upgrade'?'thw':'tcr';
       const oc=j.overdue?' ovd':'';
-      const ref=esc(j.reference);
       const sla=j.sla_breach?'<span class="b bs">&#9888; SLA</span>':'';
       const dlRow=j.date_logged?'<div class="pc-date"><span class="pc-dl">Logged</span>'+esc(j.date_logged)+'</div>':'';
       const rdRow=j.requested_date?'<div class="pc-date"><span class="pc-dl">Requested</span>'+esc(j.requested_date)+'</div>':'';
       const glRow='<div class="pc-date"><span class="pc-dl">Go Live</span>'+(j.due_date?esc(j.due_date):'TBC')+'</div>';
       const accCom=j.comments?'<details class="acc"><summary>Latest Action</summary><div class="acc-body">'+esc(j.comments)+'</div></details>':'';
       const accSal=j.sales_comments?'<details class="acc"><summary>Sales Notes</summary><div class="acc-body">'+esc(j.sales_comments)+'</div></details>':'';
-      html+=
-        '<div class="pc '+tc+oc+'">'+
-          '<div class="pc-top">'+typeBadge(j.order_type)+' '+levelBadge(j.level)+' '+sla+'</div>'+
-          '<div class="pc-ref">'+ref+'</div>'+
-          '<div class="pc-cust">'+esc(j.customer)+'</div>'+
-          '<div class="pc-dates">'+dlRow+rdRow+glRow+'</div>'+
-          '<div class="pc-bottom">'+daysLabel(j)+' <span class="b bst">'+esc(j.status)+'</span></div>'+
-          accCom+accSal+
-        '</div>';
+      html+='<div class="pc '+tc+oc+'">'+
+        '<div class="pc-top">'+typeBadge(j.order_type)+' '+levelBadge(j.level)+' '+sla+'</div>'+
+        '<div class="pc-ref">'+esc(j.reference)+'</div>'+
+        '<div class="pc-cust">'+esc(j.customer)+'</div>'+
+        '<div class="pc-dates">'+dlRow+rdRow+glRow+'</div>'+
+        '<div class="pc-bottom">'+daysLabel(j)+' <span class="b bst">'+esc(j.status)+'</span></div>'+
+        accCom+accSal+'</div>';
     });
     html+='</div>';
   }
@@ -492,7 +457,6 @@ function sortedJobs(jobs){
     return av<bv?-sDir:av>bv?sDir:0;
   });
 }
-
 function filteredJobs(){
   const ft=document.getElementById('f-type').value;
   const fs=document.getElementById('f-status').value;
@@ -508,11 +472,10 @@ function filteredJobs(){
     return true;
   });
 }
-
 function jobRow(j){
   var slaDeadline=j.sla_deadline||j.effective_deadline||'';
   var slaCell=slaDeadline?
-    (j.sla_breach?'<span class="ovdt" title="Past SLA deadline">&#9888; '+esc(slaDeadline)+'</span>':
+    (j.sla_breach?'<span class="ovdt" title="Past SLA">&#9888; '+esc(slaDeadline)+'</span>':
      '<span class="okt">'+esc(slaDeadline)+'</span>'):'<span class="mut">N/A</span>';
   const loc=j.location?'<br><span style="font-size:.72rem;color:var(--muted)">'+esc(j.location)+'</span>':'';
   const hasDetail=!!(j.comments||j.sales_comments);
@@ -534,20 +497,15 @@ function jobRow(j){
   if(j.sales_comments) secs.push('<div class="detail-section"><span class="detail-lbl">Sales Notes</span><span class="detail-text">'+esc(j.sales_comments)+'</span></div>');
   return mainRow+'<tr class="detail-row" style="display:none"><td colspan="9"><div class="detail-pane">'+secs.join('')+'</div></td></tr>';
 }
-
 function renderJobs(){
   const fj=filteredJobs();
   const sj=sortedJobs(fj);
-  const isGrouped=(
-    document.getElementById('f-type').value==='all'&&
+  const isGrouped=(document.getElementById('f-type').value==='all'&&
     document.getElementById('f-status').value==='all'&&
-    document.getElementById('f-period').value==='all'&&
-    sCol==='due_date_iso'
-  );
+    document.getElementById('f-period').value==='all'&&sCol==='due_date_iso');
   document.getElementById('j-cnt').textContent=fj.length;
   const el=document.getElementById('jobs-table');
   if(!sj.length){ el.innerHTML='<div class="empty">No jobs match the current filters.</div>'; return; }
-
   const thead='<thead><tr>'+
     ['reference','order_type','customer','level','due_date_iso','days_left','status','','']
     .map((c,i)=>{
@@ -556,7 +514,6 @@ function renderJobs(){
       const dc=c?(' data-col="'+c+'"'):'';
       return '<th'+cls+dc+'>'+labels[i]+'</th>';
     }).join('')+'</tr></thead>';
-
   let body='<tbody>';
   if(isGrouped){
     const grp={};BANDS.forEach(b=>grp[b]=[]);
@@ -571,8 +528,6 @@ function renderJobs(){
   }
   body+='</tbody>';
   el.innerHTML='<div class="tbl-wrap"><table>'+thead+body+'</table></div>';
-
-  // Sort headers
   el.querySelectorAll('th[data-col]').forEach(th=>{
     th.addEventListener('click',()=>{
       if(sCol===th.dataset.col) sDir*=-1;
@@ -580,8 +535,6 @@ function renderJobs(){
       renderJobs();
     });
   });
-
-  // Expand/collapse detail rows via event delegation
   el.querySelector('table').addEventListener('click',function(e){
     var btn=e.target.closest('.exp-btn');
     if(!btn) return;
@@ -629,7 +582,6 @@ function renderCompleted(){
   const sel=document.getElementById('f-status');
   statuses.forEach(s=>{const o=document.createElement('option');o.value=s.toLowerCase();o.textContent=s;sel.appendChild(o);});
 })();
-
 ['f-type','f-status','f-period'].forEach(id=>document.getElementById(id).addEventListener('change',renderJobs));
 document.getElementById('f-reset').addEventListener('click',()=>{
   document.getElementById('f-type').value='all';
@@ -638,7 +590,7 @@ document.getElementById('f-reset').addEventListener('click',()=>{
   sCol='due_date_iso';sDir=1;renderJobs();
 });
 
-// ── Nav scroll highlight ───────────────────────────────────────────────────────
+// ── Nav highlight ─────────────────────────────────────────────────────────────
 const _secs=['priorities','jobs','completed'],_nl={};
 _secs.forEach(id=>{_nl[id]=document.querySelector('.nav a[href="#'+id+'"]');});
 window.addEventListener('scroll',()=>{
