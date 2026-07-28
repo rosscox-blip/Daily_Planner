@@ -227,6 +227,14 @@ tr.rcr  td:first-child{border-left:3px solid var(--cr)}
             padding:3px 10px;border-radius:6px;font-size:.72rem;cursor:pointer}
 .toggle-btn:hover{border-color:var(--pink);color:var(--pink)}
 
+/* ── Category toggle ─────────────────────────────────────────── */
+.cat-toggle{display:flex;gap:4px;margin-left:auto}
+.cat-btn{background:none;border:1px solid var(--border);color:var(--muted);
+         padding:4px 14px;border-radius:6px;font-size:.72rem;font-weight:700;cursor:pointer;
+         transition:all .15s}
+.cat-btn.active{background:var(--pink);border-color:var(--pink);color:#fff}
+.cat-btn:hover:not(.active){border-color:var(--pink);color:var(--pink)}
+
 /* ── Changelog ───────────────────────────────────────────────── */
 .cl-empty{background:var(--card);border:1px solid var(--border);border-radius:var(--r);
           padding:24px;text-align:center;color:var(--muted);font-size:.85rem}
@@ -285,7 +293,7 @@ footer{text-align:center;padding:24px 16px;color:var(--muted);font-size:.72rem;
     </div>
     <div class="hdr-ts">
       <span id="current-time" class="cur-time">--:--</span>
-      <span class="upd-time">28 Jul 2026, 15:48</span>
+      <span class="upd-time">28 Jul 2026, 15:58</span>
       <small>Updates hourly</small>
     </div>
     <button id="theme-btn" class="theme-btn" onclick="toggleTheme()">&#9728; Light</button>
@@ -341,6 +349,18 @@ footer{text-align:center;padding:24px 16px;color:var(--muted);font-size:.72rem;
     <div id="jobs-table"></div>
   </section>
 
+  <section id="unassigned">
+    <div class="sec-hdr">
+      <h2>Unassigned Jobs</h2><span class="sec-cnt" id="u-cnt">0</span>
+      <div class="cat-toggle">
+        <button id="u-cwt-btn" class="cat-btn" onclick="switchCat('CWT')">CWT</button>
+        <button id="u-neops-btn" class="cat-btn" onclick="switchCat('NEOPS')">NEOPS</button>
+      </div>
+    </div>
+    <div class="sec-sub">Jobs not yet assigned &mdash; see what&rsquo;s coming down the pipeline</div>
+    <div id="unassigned-table"></div>
+  </section>
+
   <section id="completed">
     <div class="sec-hdr">
       <h2>Completed Jobs</h2>
@@ -360,7 +380,7 @@ footer{text-align:center;padding:24px 16px;color:var(--muted);font-size:.72rem;
 
 <footer>
   Daily Planner &mdash; Software Customisations &mdash; Flowbird / Arrive &nbsp;&middot;&nbsp;
-  Last updated 28 Jul 2026, 15:48 &nbsp;&middot;&nbsp; Updates hourly
+  Last updated 28 Jul 2026, 15:58 &nbsp;&middot;&nbsp; Updates hourly
 </footer>
 
 <script>
@@ -408,7 +428,8 @@ setInterval(_tick,30000);
 
 // ── Data (populated after auth + fetch) ───────────────────────────────────────
 var MEMBER_EMAIL = 'jayprakash.basaliyal@arrive.com';
-var JOBS = [], COMPLETED = [];
+var MEMBER_CATEGORY = 'CWT';
+var JOBS = [], COMPLETED = [], UNASSIGNED_CWT = [], UNASSIGNED_NEOPS = [];
 var LH = {"XS": 1, "S": 2, "M": 4, "L": 8, "XL": 16};
 const CAP2W = 60;
 var CHANGELOG = [];
@@ -456,12 +477,15 @@ function _loadData(user){
     return r.json();
   })
   .then(function(data){
-    JOBS      = data.jobs      || [];
-    COMPLETED = data.completed || [];
+    JOBS             = data.jobs             || [];
+    COMPLETED        = data.completed        || [];
+    UNASSIGNED_CWT   = data.unassigned_cwt   || [];
+    UNASSIGNED_NEOPS = data.unassigned_neops || [];
     _loadOverlay.style.display='none';
     _populateStatusFilter();
     renderPriorities();
     renderJobs();
+    renderUnassigned();
     renderCompleted();
     renderChangelog();
   })
@@ -664,6 +688,54 @@ function renderJobs(){
       btn.classList.toggle('open',!open);
     }
   });
+}
+
+// ── Unassigned jobs ───────────────────────────────────────────────────────────
+var _activeCat = MEMBER_CATEGORY;
+(function(){
+  var cwtBtn   = document.getElementById('u-cwt-btn');
+  var neopsBtn = document.getElementById('u-neops-btn');
+  if(cwtBtn)   cwtBtn.classList.toggle('active',   _activeCat==='CWT');
+  if(neopsBtn) neopsBtn.classList.toggle('active', _activeCat==='NEOPS');
+})();
+
+function switchCat(cat){
+  _activeCat = cat;
+  document.getElementById('u-cwt-btn').classList.toggle('active',   cat==='CWT');
+  document.getElementById('u-neops-btn').classList.toggle('active', cat==='NEOPS');
+  renderUnassigned();
+}
+
+function renderUnassigned(){
+  var jobs = _activeCat==='CWT' ? UNASSIGNED_CWT : UNASSIGNED_NEOPS;
+  document.getElementById('u-cnt').textContent = jobs.length;
+  var el = document.getElementById('unassigned-table');
+  if(!jobs.length){
+    el.innerHTML='<div class="empty">No unassigned '+_activeCat+' jobs right now.</div>';
+    return;
+  }
+  var sorted=[...jobs].sort((a,b)=>{
+    var av=a.due_date_iso||'',bv=b.due_date_iso||'';
+    if(!av&&bv) return 1; if(av&&!bv) return -1;
+    return av<bv?-1:av>bv?1:0;
+  });
+  var html='<div class="tbl-wrap"><table><thead><tr>'+
+    '<th>Reference</th><th>Type</th><th>Customer</th><th>Level</th>'+
+    '<th>Due Date</th><th>Days</th><th>Status</th></tr></thead><tbody>';
+  sorted.forEach(function(j){
+    var loc=j.location?'<br><span style="font-size:.72rem;color:var(--muted)">'+esc(j.location)+'</span>':'';
+    html+='<tr class="'+rowCls(j)+'">'+
+      '<td class="rc">'+esc(j.reference)+'</td>'+
+      '<td>'+typeBadge(j.order_type)+'</td>'+
+      '<td>'+esc(j.customer)+loc+'</td>'+
+      '<td>'+levelBadge(j.level)+'</td>'+
+      '<td>'+(j.due_date?esc(j.due_date):'<span class="mut">&mdash;</span>')+'</td>'+
+      '<td class="dc">'+daysLabel(j)+'</td>'+
+      '<td><span class="b bst">'+esc(j.status)+'</span></td>'+
+      '</tr>';
+  });
+  html+='</tbody></table></div>';
+  el.innerHTML=html;
 }
 
 // ── Completed ─────────────────────────────────────────────────────────────────
