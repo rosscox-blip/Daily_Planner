@@ -80,20 +80,14 @@ section{margin-bottom:52px}
 .pc.tcr {border-left-color:var(--cr)}
 .pc.ovd {background:#180e1a;border-color:#3a1a2a}
 
-/* NMO callout */
-.nmo-call{background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.3);
-          border-radius:6px;padding:8px 10px;font-size:.73rem;color:#fbbf24;line-height:1.4}
-.nmo-call strong{color:var(--nmo)}
-
-.pc-type{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
-.tnmo .pc-type{color:var(--nmo)}.thw .pc-type{color:var(--hw)}.tcr .pc-type{color:var(--cr)}
+.pc-top{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
 .pc-ref{font-size:.95rem;font-weight:700;font-family:monospace;color:var(--pink)}
 .pc-ref a{color:inherit;text-decoration:none}.pc-ref a:hover{text-decoration:underline}
 .pc-cust{font-size:.85rem;font-weight:600}
-.pc-meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
-.pc-due{font-size:.76rem;color:var(--muted)}
-.pc-cmt{font-size:.73rem;color:var(--muted);font-style:italic;
-        white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pc-dates{display:flex;flex-direction:column;gap:3px;margin-top:2px}
+.pc-date{font-size:.75rem;color:var(--text);display:flex;gap:6px}
+.pc-dl{color:var(--muted);min-width:68px;flex-shrink:0}
+.pc-bottom{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:2px}
 
 /* Badges */
 .b{font-size:.68rem;font-weight:700;padding:2px 7px;border-radius:10px;
@@ -153,6 +147,9 @@ tr.rcr  td:first-child{border-left:3px solid var(--cr)}
 
 /* Completed */
 .comp-wrap{overflow-x:auto;border-radius:var(--r);border:1px solid var(--border)}
+.toggle-btn{margin-left:8px;background:none;border:1px solid var(--border);color:var(--muted);
+            padding:3px 10px;border-radius:6px;font-size:.72rem;cursor:pointer}
+.toggle-btn:hover{border-color:var(--pink);color:var(--pink)}
 
 /* Footer */
 footer{text-align:center;padding:24px 16px;color:var(--muted);font-size:.72rem;
@@ -208,7 +205,7 @@ footer{text-align:center;padding:24px 16px;color:var(--muted);font-size:.72rem;
       <div class="hdr-sub">Software Customisations &mdash; Flowbird / Arrive</div>
     </div>
     <div class="hdr-ts">
-      <strong>28 Jul 2026, 08:28</strong>
+      <strong>28 Jul 2026, 08:47</strong>
       <small>Updates hourly</small>
     </div>
   </div>
@@ -267,16 +264,17 @@ footer{text-align:center;padding:24px 16px;color:var(--muted);font-size:.72rem;
     <div class="sec-hdr">
       <h2>Completed Jobs</h2>
       <span class="sec-cnt" id="c-cnt">0</span>
+      <button class="toggle-btn" id="comp-toggle" onclick="toggleCompleted()">Show &#9660;</button>
     </div>
     <div class="sec-sub">All shipped work &mdash; newest first</div>
-    <div id="comp-table"></div>
+    <div id="comp-table" style="display:none"></div>
   </section>
 
 </main>
 
 <footer>
   Daily Planner &mdash; Software Customisations &mdash; Flowbird / Arrive &nbsp;&middot;&nbsp;
-  Last updated 28 Jul 2026, 08:28 &nbsp;&middot;&nbsp; Updates hourly
+  Last updated 28 Jul 2026, 08:47 &nbsp;&middot;&nbsp; Updates hourly
 </footer>
 
 <script>
@@ -376,24 +374,19 @@ function renderPriorities(){
     pjobs.forEach(j=>{
       const tc=j.order_type==='New Machine Order'?'tnmo':j.order_type==='Hardware Upgrade'?'thw':'tcr';
       const oc=j.overdue?' ovd':'';
-      const nmo=j.order_type==='New Machine Order'?
-        '<div class="nmo-call"><strong>&#9888; New Machine Order</strong> &mdash; This is a larger, more complex job. '+
-        'Brand new hardware has been purchased and the customer has higher expectations. '+
-        'Allow extra time for testing, edge cases, and proactive communication.</div>':'' ;
       const ref=j.onecrmlink?
         '<a href="'+esc(j.onecrmlink)+'" target="_blank">'+esc(j.reference)+'</a>':esc(j.reference);
-      const sla=j.sla_breach?'<span class="b bs">&thinsp;&#9888; SLA</span>':'';
-      const cmt=j.comments?'<div class="pc-cmt" title="'+esc(j.comments)+'">'+esc(j.comments)+'</div>':'';
+      const sla=j.sla_breach?'<span class="b bs">&#9888; SLA</span>':'';
+      const dlRow=j.date_logged?'<div class="pc-date"><span class="pc-dl">Logged</span>'+esc(j.date_logged)+'</div>':'';
+      const rdRow=j.requested_date?'<div class="pc-date"><span class="pc-dl">Requested</span>'+esc(j.requested_date)+'</div>':'';
+      const glRow='<div class="pc-date"><span class="pc-dl">Go Live</span>'+(j.due_date?esc(j.due_date):'TBC')+'</div>';
       html+=
         '<div class="pc '+tc+oc+'">'+
-          '<div class="pc-type">'+esc(j.order_type)+'</div>'+
-          nmo+
+          '<div class="pc-top">'+typeBadge(j.order_type)+' '+levelBadge(j.level)+' '+sla+'</div>'+
           '<div class="pc-ref">'+ref+'</div>'+
           '<div class="pc-cust">'+esc(j.customer)+'</div>'+
-          '<div class="pc-meta">'+levelBadge(j.level)+' '+daysLabel(j)+
-            ' <span class="b bst">'+esc(j.status)+'</span>'+sla+'</div>'+
-          '<div class="pc-due">'+(j.due_date?'Due: '+esc(j.due_date):'No date set')+'</div>'+
-          cmt+
+          '<div class="pc-dates">'+dlRow+rdRow+glRow+'</div>'+
+          '<div class="pc-bottom">'+daysLabel(j)+' <span class="b bst">'+esc(j.status)+'</span></div>'+
         '</div>';
     });
     html+='</div>';
@@ -505,6 +498,13 @@ function renderJobs(){
 }
 
 // ── Completed ────────────────────────────────────────────────────────────────
+function toggleCompleted(){
+  var el=document.getElementById('comp-table');
+  var btn=document.getElementById('comp-toggle');
+  var visible=el.style.display!=='none';
+  el.style.display=visible?'none':'block';
+  btn.innerHTML=visible?'Show &#9660;':'Hide &#9650;';
+}
 function renderCompleted(){
   document.getElementById('c-cnt').textContent=COMPLETED.length;
   const el=document.getElementById('comp-table');
