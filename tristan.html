@@ -460,18 +460,20 @@ function _showWrongUser(email){
   _authOverlay.style.display='flex';
 }
 
+var ADMIN_EMAIL='ross.cox@arrive.com';
 function _loadData(user){
-  if(user.email.toLowerCase()!==MEMBER_EMAIL.toLowerCase()){
+  var isAdmin=user.email.toLowerCase()===ADMIN_EMAIL.toLowerCase();
+  if(!isAdmin&&user.email.toLowerCase()!==MEMBER_EMAIL.toLowerCase()){
     _showWrongUser(user.email);
     return;
   }
   _authOverlay.style.display='none';
   _loadOverlay.style.display='flex';
-  _navEmail.textContent=user.email;
+  _navEmail.textContent=isAdmin&&user.email.toLowerCase()!==MEMBER_EMAIL.toLowerCase()?'Admin: '+user.email:user.email;
   _navSignout.style.display='inline-block';
 
   var token=user.token.access_token;
-  fetch('/.netlify/functions/jobs',{headers:{'Authorization':'Bearer '+token}})
+  fetch('/.netlify/functions/jobs?member=tristan',{headers:{'Authorization':'Bearer '+token}})
   .then(function(r){
     if(!r.ok) throw new Error('HTTP '+r.status);
     return r.json();

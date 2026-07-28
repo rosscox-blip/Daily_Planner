@@ -4,6 +4,8 @@
 const fs   = require('fs');
 const path = require('path');
 
+const ADMIN_EMAIL = 'ross.cox@arrive.com';
+
 const EMAIL_MAP = {
   'emievic.yousaf@arrive.com':       'emie',
   'jayprakash.basaliyal@arrive.com': 'jay',
@@ -23,9 +25,20 @@ exports.handler = async (event, context) => {
     return { statusCode: 401, body: JSON.stringify({ error: 'Not authenticated' }) };
   }
 
-  const member = EMAIL_MAP[user.email.toLowerCase()];
-  if (!member) {
-    return { statusCode: 403, body: JSON.stringify({ error: 'Not authorised' }) };
+  const userEmail = user.email.toLowerCase();
+  let member;
+
+  if (userEmail === ADMIN_EMAIL) {
+    // Admin can view any member's page — page passes ?member= in the request
+    member = (event.queryStringParameters || {}).member || '';
+    if (!member) {
+      return { statusCode: 400, body: JSON.stringify({ error: 'member param required' }) };
+    }
+  } else {
+    member = EMAIL_MAP[userEmail];
+    if (!member) {
+      return { statusCode: 403, body: JSON.stringify({ error: 'Not authorised' }) };
+    }
   }
 
   const dataPath = path.join(__dirname, 'data', member + '.json');
