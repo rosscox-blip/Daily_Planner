@@ -4,22 +4,25 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Suna &mdash; Work Planner</title>
+<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <style>
+[data-netlify-identity-button]{display:none!important}
+
 :root{
   --bg:#0e0e20;--bg2:#13132e;--card:#1a1a3a;--border:#26265a;
-  --text:#d8d8f0;--muted:#6060a0;--pink:#e91e8c;
+  --text:#d8d8f0;--muted:#8888c0;--pink:#e91e8c;
   --nmo:#f97316;--hw:#3b82f6;--cr:#a855f7;
   --green:#22c55e;--amber:#f59e0b;--red:#ef4444;--r:8px;
-  --bl-bg:rgba(255,255,255,.08);--bl-col:var(--text);
-  --bst-bg:rgba(255,255,255,.06);
-  --row-hover:rgba(255,255,255,.025);
+  --bl-bg:rgba(255,255,255,.1);--bl-col:var(--text);
+  --bst-bg:rgba(255,255,255,.07);
+  --row-hover:rgba(255,255,255,.03);
   --band-lt-bg:rgba(255,255,255,.04);--band-un-bg:rgba(255,255,255,.02);
   --ovd-card:#180e1a;--ovd-border:#3a1a2a;
 }
 [data-theme="light"]{
   --bg:#f0f0f8;--bg2:#ffffff;--card:#ffffff;--border:#d0d0e8;
-  --text:#1a1a3a;--muted:#5858a0;
-  --bl-bg:rgba(0,0,0,.07);--bl-col:#1a1a3a;
+  --text:#1a1a3a;--muted:#5050a0;
+  --bl-bg:rgba(0,0,0,.08);--bl-col:#1a1a3a;
   --bst-bg:rgba(0,0,0,.06);
   --row-hover:rgba(0,0,0,.03);
   --band-lt-bg:rgba(0,0,0,.04);--band-un-bg:rgba(0,0,0,.025);
@@ -34,19 +37,30 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
   display:flex;align-items:center;justify-content:center;z-index:9999}
 [data-theme="light"] #auth-overlay{background:rgba(220,220,240,.97)}
 #auth-box{background:var(--card);border:1px solid var(--border);border-radius:12px;
-  padding:36px 32px;width:320px;text-align:center;display:flex;
+  padding:36px 32px;width:340px;text-align:center;display:flex;
   flex-direction:column;align-items:center;gap:14px}
 #auth-avatar{width:56px;height:56px;border-radius:50%;background:var(--pink);
   display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff}
 #auth-name{font-size:1.1rem;font-weight:700}
-#auth-sub{color:var(--muted);font-size:.82rem}
-#pw-input{width:100%;background:var(--bg);border:1px solid var(--border);color:var(--text);
-  padding:10px 14px;border-radius:7px;font-size:.9rem;text-align:center;letter-spacing:.1em}
-#pw-input:focus{outline:none;border-color:var(--pink)}
+#auth-sub{color:var(--muted);font-size:.82rem;line-height:1.5}
 #auth-login-btn{width:100%;background:var(--pink);color:#fff;border:none;
   padding:11px;border-radius:7px;font-size:.9rem;font-weight:700;cursor:pointer;transition:opacity .15s}
 #auth-login-btn:hover{opacity:.85}
-#auth-error{color:var(--red);font-size:.78rem;min-height:1em}
+#auth-wrong{display:none;flex-direction:column;gap:10px;width:100%;align-items:center}
+#auth-wrong p{font-size:.8rem;color:var(--muted);line-height:1.4}
+#auth-wrong a{color:var(--pink);font-weight:700;font-size:.8rem}
+#auth-logout-btn{background:none;border:1px solid var(--border);color:var(--muted);
+  padding:7px 18px;border-radius:6px;font-size:.8rem;cursor:pointer}
+#auth-logout-btn:hover{border-color:var(--red);color:var(--red)}
+
+/* Loading overlay (shown while fetching data after auth) */
+#load-overlay{position:fixed;inset:0;background:rgba(10,10,28,.92);
+  display:none;align-items:center;justify-content:center;z-index:9998;
+  flex-direction:column;gap:16px}
+.load-spin{width:40px;height:40px;border:3px solid rgba(255,255,255,.1);
+  border-top-color:var(--pink);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#load-msg{color:var(--muted);font-size:.85rem}
 
 /* Header */
 .hdr{background:var(--bg2);border-bottom:2px solid var(--pink);padding:16px 20px}
@@ -69,11 +83,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
 /* Nav */
 .nav{background:var(--bg2);border-bottom:1px solid var(--border);
      position:sticky;top:0;z-index:100}
-.nav-inner{max-width:1200px;margin:0 auto;display:flex}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;padding-right:16px}
+.nav-links{display:flex}
 .nav a{padding:10px 22px;text-decoration:none;color:var(--muted);font-size:0.78rem;
        font-weight:700;text-transform:uppercase;letter-spacing:.06em;
        border-bottom:3px solid transparent;transition:all .15s}
 .nav a:hover,.nav a.act{color:var(--pink);border-color:var(--pink)}
+.nav-user{font-size:.72rem;color:var(--muted);display:flex;align-items:center;gap:8px}
+.nav-signout{background:none;border:1px solid var(--border);color:var(--muted);
+             padding:4px 10px;border-radius:5px;font-size:.7rem;cursor:pointer}
+.nav-signout:hover{border-color:var(--red);color:var(--red)}
 
 /* Main */
 main{max-width:1200px;margin:0 auto;padding:28px 16px}
@@ -115,13 +134,13 @@ section{margin-bottom:52px}
 
 /* Accordion */
 details.acc{border-top:1px solid var(--border);margin-top:2px}
-details.acc summary{font-size:.7rem;color:var(--muted);cursor:pointer;padding:5px 0 3px;
+details.acc summary{font-size:.72rem;color:var(--muted);cursor:pointer;padding:5px 0 3px;
   list-style:none;display:flex;align-items:center;justify-content:space-between;
-  user-select:none;text-transform:uppercase;letter-spacing:.04em}
+  user-select:none;text-transform:uppercase;letter-spacing:.04em;font-weight:700}
 details.acc summary::after{content:'▼';font-size:.55rem;transition:transform .2s}
 details.acc[open] summary::after{transform:rotate(-180deg)}
 details.acc summary::-webkit-details-marker{display:none}
-details.acc .acc-body{padding:6px 0 2px;font-size:.76rem;color:var(--text);
+details.acc .acc-body{padding:6px 0 2px;font-size:.77rem;color:var(--text);
   white-space:pre-wrap;line-height:1.55;word-break:break-word}
 
 /* Badges */
@@ -152,7 +171,7 @@ details.acc .acc-body{padding:6px 0 2px;font-size:.76rem;color:var(--text);
 .band-row td{padding:7px 12px;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em}
 .band-ovd td{background:rgba(239,68,68,.12);color:var(--red)}
 .band-tw  td{background:rgba(245,158,11,.1); color:var(--amber)}
-.band-n2w td{background:rgba(59,130,246,.08);color:#60a0f8}
+.band-n2w td{background:rgba(59,130,246,.08);color:#80b0ff}
 .band-lt  td{background:var(--band-lt-bg);color:var(--muted)}
 .band-un  td{background:var(--band-un-bg);color:var(--muted);font-style:italic}
 table{width:100%;border-collapse:collapse}
@@ -163,7 +182,7 @@ th{padding:9px 11px;text-align:left;font-size:.7rem;text-transform:uppercase;
 th:hover{color:var(--text)}
 th.sa::after{content:' ↑';color:var(--pink)}
 th.sd::after{content:' ↓';color:var(--pink)}
-td{padding:9px 11px;border-bottom:1px solid rgba(255,255,255,.04);vertical-align:top;font-size:.82rem}
+td{padding:9px 11px;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:top;font-size:.82rem}
 [data-theme="light"] td{border-bottom:1px solid var(--border)}
 tr:hover td{background:var(--row-hover)}
 tr.rnmo td:first-child{border-left:3px solid var(--nmo)}
@@ -186,7 +205,7 @@ tr.rcr  td:first-child{border-left:3px solid var(--cr)}
          cursor:pointer;font-size:.68rem;padding:2px 8px;border-radius:4px;transition:all .15s}
 .exp-btn:hover,.exp-btn.open{border-color:var(--pink);color:var(--pink)}
 
-/* Empty / completed */
+/* Completed / misc */
 .empty{text-align:center;padding:36px;color:var(--muted);font-size:.88rem}
 .comp-wrap{overflow-x:auto;border-radius:var(--r);border:1px solid var(--border)}
 .toggle-btn{margin-left:8px;background:none;border:1px solid var(--border);color:var(--muted);
@@ -226,11 +245,19 @@ footer{text-align:center;padding:24px 16px;color:var(--muted);font-size:.72rem;
   <div id="auth-box">
     <div id="auth-avatar">S</div>
     <div id="auth-name">Suna</div>
-    <div id="auth-sub">Enter your password to view your planner</div>
-    <input type="password" id="pw-input" placeholder="Password" autocomplete="current-password">
-    <button id="auth-login-btn">Unlock</button>
-    <div id="auth-error"></div>
+    <div id="auth-sub">Log in with your work email to view your planner</div>
+    <button id="auth-login-btn">Log in with email</button>
+    <div id="auth-wrong">
+      <p id="auth-wrong-msg"></p>
+      <button id="auth-logout-btn">Sign out</button>
+    </div>
   </div>
+</div>
+
+<!-- Loading overlay (data fetch after auth) -->
+<div id="load-overlay">
+  <div class="load-spin"></div>
+  <div id="load-msg">Loading your jobs&hellip;</div>
 </div>
 
 <header class="hdr">
@@ -243,7 +270,7 @@ footer{text-align:center;padding:24px 16px;color:var(--muted);font-size:.72rem;
     </div>
     <div class="hdr-ts">
       <span id="current-time" class="cur-time">--:--</span>
-      <span class="upd-time">28 Jul 2026, 14:08</span>
+      <span class="upd-time">28 Jul 2026, 14:40</span>
       <small>Updates hourly</small>
     </div>
     <button id="theme-btn" class="theme-btn" onclick="toggleTheme()">&#9728; Light</button>
@@ -252,10 +279,16 @@ footer{text-align:center;padding:24px 16px;color:var(--muted);font-size:.72rem;
 
 <nav class="nav">
   <div class="nav-inner">
-    <a href="#priorities" class="act">Priorities</a>
-    <a href="#jobs">All Jobs</a>
-    <a href="#completed">Completed</a>
-    <a href="#changelog">What's New</a>
+    <div class="nav-links">
+      <a href="#priorities" class="act">Priorities</a>
+      <a href="#jobs">All Jobs</a>
+      <a href="#completed">Completed</a>
+      <a href="#changelog">What's New</a>
+    </div>
+    <div class="nav-user">
+      <span id="nav-user-email"></span>
+      <button class="nav-signout" id="nav-signout-btn" style="display:none">Sign out</button>
+    </div>
   </div>
 </nav>
 
@@ -312,7 +345,7 @@ footer{text-align:center;padding:24px 16px;color:var(--muted);font-size:.72rem;
 
 <footer>
   Daily Planner &mdash; Software Customisations &mdash; Flowbird / Arrive &nbsp;&middot;&nbsp;
-  Last updated 28 Jul 2026, 14:08 &nbsp;&middot;&nbsp; Updates hourly
+  Last updated 28 Jul 2026, 14:40 &nbsp;&middot;&nbsp; Updates hourly
 </footer>
 
 <script>
@@ -330,13 +363,13 @@ function toggleTheme(){
 }
 function _setThemeBtn(t){
   var b=document.getElementById('theme-btn');
-  if(b) b.innerHTML=t==='dark'?'&#9728; Light':'&#9790; Dark';
+  if(b)b.innerHTML=t==='dark'?'&#9728; Light':'&#9790; Dark';
 }
 
 // ── Clock ─────────────────────────────────────────────────────────────────────
 function _tick(){
   var el=document.getElementById('current-time');
-  if(!el) return;
+  if(!el)return;
   var d=new Date();
   el.textContent=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
 }
@@ -353,43 +386,90 @@ setInterval(_tick,30000);
   _apply(c);
   var av=document.getElementById('member-avatar');
   var pk=document.getElementById('avatar-color-picker');
-  if(pk){ pk.value=c; }
-  if(av) av.addEventListener('click',function(){ if(pk) pk.click(); });
-  if(pk) pk.addEventListener('input',function(){
-    _apply(pk.value);
-    localStorage.setItem(KEY,pk.value);
-  });
+  if(pk)pk.value=c;
+  if(av)av.addEventListener('click',function(){if(pk)pk.click();});
+  if(pk)pk.addEventListener('input',function(){_apply(pk.value);localStorage.setItem(KEY,pk.value);});
 })();
 
-// ── Password auth ─────────────────────────────────────────────────────────────
-var PW = 'wz6868b7ab';
-var _overlay = document.getElementById('auth-overlay');
-if(sessionStorage.getItem('planner_auth_Suna')==='1'){
-  _overlay.style.display='none';
-}
-function _checkPw(val){
-  if(val.toLowerCase()===PW){
-    sessionStorage.setItem('planner_auth_Suna','1');
-    _overlay.style.display='none';
-    document.getElementById('auth-error').textContent='';
-  } else {
-    document.getElementById('auth-error').textContent='Incorrect password — try again';
-  }
-}
-document.getElementById('auth-login-btn').addEventListener('click',function(){
-  _checkPw(document.getElementById('pw-input').value);
-});
-document.getElementById('pw-input').addEventListener('keydown',function(e){
-  if(e.key==='Enter') _checkPw(this.value);
-});
-
-// ── Data ──────────────────────────────────────────────────────────────────────
-var CHANGELOG = [];
-var JOBS      = [{"reference": "SF-103722", "servicenow": "", "customer": "Creative Car Park", "location": "Camberley MSCP", "num_customisations": "1", "num_machines": "2", "model": "NEOPS", "due_date": "29/07/2026", "due_date_iso": "2026-07-29", "requested_date": "ASAP", "go_live_date": "??", "date_logged": "01/07/2026", "sort_bucket": 2, "days_in_queue": 27, "parts_delivery_date": "", "parts_in_stock": false, "due_from_delivery": false, "sla_deadline": "29/07/2026", "effective_deadline": "29/07/2026", "sla_breach": false, "go_live_unconfirmed": true, "unscheduled": true, "blanket_logged": false, "customer_chose_far_date": false, "is_asap": true, "is_tbc": false, "days_left": 1, "due_soon": true, "overdue": false, "allocated_to": "Suna", "status": "Blocked/On Hold", "order_type": "Change Request", "source": "Change Requests", "comments": "Software\nServiceNow ticket: INC0485953\n13/07/2026: Customer asked us to put on HOLD until future noticed.", "sales_comments": "", "level": "M", "onecrmlink": "26009", "trackinglink": "SF-103722", "has_ref": true}, {"reference": "SF-099114", "servicenow": "", "customer": "University of Birmingham", "location": "Various", "num_customisations": "5", "num_machines": "17", "model": "NEOPS", "due_date": "03/08/2026", "due_date_iso": "2026-08-03", "requested_date": "03/08/2026", "go_live_date": "03/08/2026", "date_logged": "26/05/2026", "sort_bucket": 1, "days_in_queue": 63, "parts_delivery_date": "", "parts_in_stock": false, "due_from_delivery": false, "sla_deadline": "23/06/2026", "effective_deadline": "23/06/2026", "sla_breach": false, "go_live_unconfirmed": false, "unscheduled": false, "blanket_logged": true, "customer_chose_far_date": true, "is_asap": false, "is_tbc": false, "days_left": 6, "due_soon": false, "overdue": false, "allocated_to": "Suna", "status": "To Do", "order_type": "Change Request", "source": "Change Requests", "comments": "", "sales_comments": "Just tariff price increase (No change to structure)", "level": "M", "onecrmlink": "23436", "trackinglink": "SF-099114", "has_ref": true}, {"reference": "SF-050300", "servicenow": "", "customer": "Havant BC", "location": "Various", "num_customisations": "13", "num_machines": "58", "model": "NEOPS", "due_date": "03/08/2026", "due_date_iso": "2026-08-03", "requested_date": "03/08/2026", "go_live_date": "03/08/2026", "date_logged": "07/07/2026", "sort_bucket": 1, "days_in_queue": 21, "parts_delivery_date": "", "parts_in_stock": false, "due_from_delivery": false, "sla_deadline": "04/08/2026", "effective_deadline": "04/08/2026", "sla_breach": false, "go_live_unconfirmed": false, "unscheduled": false, "blanket_logged": false, "customer_chose_far_date": false, "is_asap": false, "is_tbc": false, "days_left": 6, "due_soon": false, "overdue": false, "allocated_to": "Suna", "status": "Queued", "order_type": "Change Request", "source": "Change Requests", "comments": "SNOW: INC0485242\n27/07/2026: Ready to queue. Waiting customer Go-Live date confirmation.\n27/07/2026: All queued. G:\\Shared drives\\Partner Success UK\\Great Britain\\H\\HAVANT-BC\\Final\\!Resources\\Tariffs\\Neops\\2026\\SF-050300_Various_Jul26", "sales_comments": "", "level": "M", "onecrmlink": "11964", "trackinglink": "SF-050300", "has_ref": true}, {"reference": "UK2603S033", "servicenow": "", "customer": "Thanet", "location": "Marine Terrace, Margate. On Street", "num_customisations": "", "num_machines": "1", "model": "NEOPS", "due_date": "05/08/2026", "due_date_iso": "2026-08-05", "requested_date": "??", "go_live_date": "??", "date_logged": "08/07/2026", "sort_bucket": 1, "days_in_queue": 20, "parts_delivery_date": "05/08/2026", "parts_in_stock": false, "due_from_delivery": true, "sla_deadline": "05/08/2026", "effective_deadline": "05/08/2026", "sla_breach": false, "go_live_unconfirmed": true, "unscheduled": true, "blanket_logged": false, "customer_chose_far_date": false, "is_asap": false, "is_tbc": false, "days_left": 8, "due_soon": false, "overdue": false, "allocated_to": "Suna", "status": "To Do", "order_type": "New Machine Order", "source": "New Machine Orders", "comments": "RC: HARDWARE INFO MISSING Jason Hickson.\nAdded. JH", "sales_comments": "", "level": "L", "onecrmlink": "19923", "trackinglink": "UK2603S033", "has_ref": true}, {"reference": "Smartfolio EPD", "servicenow": "", "customer": "Smart Parking", "location": "Hampton by Hilton Blackpool", "num_customisations": "1", "num_machines": "2", "model": "NEOPS", "due_date": "10/08/2026", "due_date_iso": "2026-08-10", "requested_date": "ASAP", "go_live_date": "??", "date_logged": "13/07/2026", "sort_bucket": 2, "days_in_queue": 15, "parts_delivery_date": "", "parts_in_stock": false, "due_from_delivery": false, "sla_deadline": "10/08/2026", "effective_deadline": "10/08/2026", "sla_breach": false, "go_live_unconfirmed": true, "unscheduled": true, "blanket_logged": false, "customer_chose_far_date": false, "is_asap": true, "is_tbc": false, "days_left": 13, "due_soon": false, "overdue": false, "allocated_to": "Suna", "status": "To Do", "order_type": "Change Request", "source": "Change Requests", "comments": "", "sales_comments": "", "level": "S", "onecrmlink": "N/A", "trackinglink": "Smartfolio EPD", "has_ref": true}, {"reference": "SF-104393", "servicenow": "", "customer": "Warrington BC", "location": "Various", "num_customisations": "9", "num_machines": "16", "model": "NEOPS", "due_date": "01/09/2026", "due_date_iso": "2026-09-01", "requested_date": "01/09/2026", "go_live_date": "??", "date_logged": "21/07/2026", "sort_bucket": 1, "days_in_queue": 7, "parts_delivery_date": "", "parts_in_stock": false, "due_from_delivery": false, "sla_deadline": "18/08/2026", "effective_deadline": "18/08/2026", "sla_breach": false, "go_live_unconfirmed": true, "unscheduled": false, "blanket_logged": false, "customer_chose_far_date": true, "is_asap": false, "is_tbc": false, "days_left": 35, "due_soon": false, "overdue": false, "allocated_to": "Suna", "status": "To Do", "order_type": "Change Request", "source": "Change Requests", "comments": "", "sales_comments": "Requested the 1st of September go-live date.", "level": "L", "onecrmlink": "26416", "trackinglink": "SF-104393", "has_ref": true}, {"reference": "SF-104313", "servicenow": "", "customer": "Gallan Parking", "location": "Kent Street", "num_customisations": "", "num_machines": "1", "model": "NEOPS", "due_date": "", "due_date_iso": "", "requested_date": "??", "go_live_date": "??", "date_logged": "24/06/26", "sort_bucket": 0, "days_in_queue": 34, "parts_delivery_date": "Stock", "parts_in_stock": true, "due_from_delivery": false, "sla_deadline": "22/07/2026", "effective_deadline": "22/07/2026", "sla_breach": false, "go_live_unconfirmed": true, "unscheduled": true, "blanket_logged": false, "customer_chose_far_date": false, "is_asap": false, "is_tbc": false, "days_left": null, "due_soon": false, "overdue": false, "allocated_to": "Suna", "status": "To Do", "order_type": "Hardware Upgrade", "source": "Hardware Upgrades", "comments": "Extended keyboard with capa 12 to ad VRM entry to 1 strada terminal", "sales_comments": "", "level": "M", "onecrmlink": "25777", "trackinglink": "SF-104313", "has_ref": true}, {"reference": "SF-105157", "servicenow": "", "customer": "Gallan Parking", "location": "Adams St", "num_customisations": "", "num_machines": "1", "model": "NEOPS", "due_date": "", "due_date_iso": "", "requested_date": "??", "go_live_date": "??", "date_logged": "15/07/26", "sort_bucket": 0, "days_in_queue": 13, "parts_delivery_date": "Stock", "parts_in_stock": true, "due_from_delivery": false, "sla_deadline": "12/08/2026", "effective_deadline": "12/08/2026", "sla_breach": false, "go_live_unconfirmed": true, "unscheduled": true, "blanket_logged": false, "customer_chose_far_date": false, "is_asap": false, "is_tbc": false, "days_left": null, "due_soon": false, "overdue": false, "allocated_to": "Suna", "status": "To Do", "order_type": "Hardware Upgrade", "source": "Hardware Upgrades", "comments": "Extended keyboard with capa 12 to ad VRM entry to 1 strada terminal", "sales_comments": "", "level": "", "onecrmlink": "26283", "trackinglink": "SF-105157", "has_ref": true}, {"reference": "SF-097106", "servicenow": "", "customer": "Watch Systems", "location": "Various", "num_customisations": "1", "num_machines": "6", "model": "NEOPS", "due_date": "01/06/2026", "due_date_iso": "2026-06-01", "requested_date": "01/06/2026", "go_live_date": "??", "date_logged": "26/05/2026", "sort_bucket": 1, "days_in_queue": 63, "parts_delivery_date": "", "parts_in_stock": false, "due_from_delivery": false, "sla_deadline": "23/06/2026", "effective_deadline": "23/06/2026", "sla_breach": false, "go_live_unconfirmed": true, "unscheduled": false, "blanket_logged": true, "customer_chose_far_date": false, "is_asap": false, "is_tbc": false, "days_left": null, "due_soon": false, "overdue": false, "allocated_to": "Suna", "status": "Awaiting Customer", "order_type": "Change Request", "source": "Change Requests", "comments": "ServiceNow Ticket: INC0483539\n18/05/2026: Chased for Go-live date confirmation\n19/05/2026: Signage delayed and customer postponed go-live date\nChased 26/06/2026, 27/07/2026 (Highlighted if we didn't hear from them by WED this job will be cancelled)", "sales_comments": "", "level": "XS", "onecrmlink": "22797", "trackinglink": "SF-097106", "has_ref": true}];
-var COMPLETED = [{"reference": "UK2512S164D", "customer": "The Settle-Carlisle Railway", "location": "SETTLE RAILWAY STATION", "num_machines": "1", "model": "NEOPS", "due_date": "22/07/2026", "allocated_to": "Suna", "status": "Completed", "order_type": "New Machine Order", "source": "New Machine Orders", "level": "M", "has_ref": true}, {"reference": "SF-099245", "customer": "Premier Park Ltd", "location": "Portland Road", "num_machines": "1", "model": "NEOPS", "due_date": "08/06/2026", "allocated_to": "Suna", "status": "Completed", "order_type": "Hardware Upgrade", "source": "Hardware Upgrades", "level": "XS", "has_ref": true}, {"reference": "SF-103446", "customer": "Chichester DC", "location": "Various", "num_machines": "9", "model": "NEOPS", "due_date": "14/07/2026", "allocated_to": "Suna", "status": "Completed", "order_type": "Hardware Upgrade", "source": "Hardware Upgrades", "level": "L", "has_ref": true}, {"reference": "SF-098810", "customer": "Britannia Parking", "location": "Market Square", "num_machines": "1", "model": "NEOPS", "due_date": "26/06/2026", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "XS", "has_ref": true}, {"reference": "SF-098096", "customer": "Northumberland County Council", "location": "Various", "num_machines": "15", "model": "NEOPS", "due_date": "13/07/26", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "M", "has_ref": true}, {"reference": "SF-099247", "customer": "Q-Park", "location": "Oleaster", "num_machines": "1", "model": "NEOPS", "due_date": "10/06/2026", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "M", "has_ref": true}, {"reference": "SF-098524", "customer": "Kirklees Council", "location": "Various", "num_machines": "8", "model": "NEOPS", "due_date": "08/05/2026", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "M", "has_ref": true}, {"reference": "SF-098081", "customer": "Mid Sussex DC", "location": "Various", "num_machines": "41", "model": "NEOPS", "due_date": "11/05/2026", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "L", "has_ref": true}, {"reference": "SF-098327", "customer": "Britannia Parking", "location": "Sutton Harbour MSCP & Lambhay Hill", "num_machines": "5", "model": "NEOPS", "due_date": "15/05/2026", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "S", "has_ref": true}, {"reference": "FOC", "customer": "Smart Parking", "location": "Rufford Park", "num_machines": "6", "model": "NEOPS", "due_date": "15/05/2026", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "S", "has_ref": true}, {"reference": "SF-098357", "customer": "Staffordshire Moorlands", "location": "Various", "num_machines": "31", "model": "NEOPS", "due_date": "22/05/2026", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "S", "has_ref": true}, {"reference": "Smartfolio EPD", "customer": "Smart Parking", "location": "Citylink Business Park", "num_machines": "2", "model": "NEOPS", "due_date": "26/05/2026", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "XS", "has_ref": true}, {"reference": "Smartfolio EPD", "customer": "Smart Parking", "location": "May Street", "num_machines": "1", "model": "NEOPS", "due_date": "26/05/2026", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "XS", "has_ref": true}, {"reference": "SF-097106", "customer": "Watch Systems", "location": "Green Field South", "num_machines": "1", "model": "NEOPS", "due_date": "29/05/2026", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "S", "has_ref": true}, {"reference": "SF-098361", "customer": "Equans", "location": "Burnley Hospital", "num_machines": "11", "model": "NEOPS", "due_date": "01/06/2026", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "XS", "has_ref": true}, {"reference": "SF-098401", "customer": "Britannia Parking", "location": "Arlesey Station", "num_machines": "2", "model": "NEOPS", "due_date": "01/06/2026", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "XS", "has_ref": true}, {"reference": "SF-098376", "customer": "Newquay TC", "location": "South fistral beach", "num_machines": "1", "model": "NEOPS", "due_date": "01/06/2026", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "XS", "has_ref": true}, {"reference": "SF-098553", "customer": "NCP", "location": "Blackburn teaching hospitals", "num_machines": "2", "model": "NEOPS", "due_date": "01/06/2026", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "XS", "has_ref": true}, {"reference": "SF-098790", "customer": "Hartlepool BC", "location": "Various", "num_machines": "42", "model": "NEOPS", "due_date": "01/06/2026", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "M", "has_ref": true}, {"reference": "SF-050228", "customer": "Essex CC", "location": "Country Parks", "num_machines": "29", "model": "NEOPS", "due_date": "01/06/2026", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "S", "has_ref": true}, {"reference": "SF-097521", "customer": "NDCI Ltd.", "location": "Sandhills CP", "num_machines": "2", "model": "NEOPS", "due_date": "04/06/2026", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "S", "has_ref": true}, {"reference": "SF-099090", "customer": "Parallel Parking", "location": "Church Green", "num_machines": "1", "model": "NEOPS", "due_date": "05/06/2026", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "XS", "has_ref": true}, {"reference": "Smartfolio EPD", "customer": "Premier Parking Solutions", "location": "Various", "num_machines": "4", "model": "NEOPS", "due_date": "08/06/2026", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "M", "has_ref": true}, {"reference": "SF-099217", "customer": "Jarrolds & sons", "location": "St Helens Wharf", "num_machines": "2", "model": "NEOPS", "due_date": "12/06/2026", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "XS", "has_ref": true}, {"reference": "Smartfolio EPD", "customer": "Premier Parking Solutions", "location": "Various", "num_machines": "6", "model": "NEOPS", "due_date": "22/06/2026", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "L", "has_ref": true}, {"reference": "SF-098523", "customer": "Wigan MBC", "location": "Various", "num_machines": "36", "model": "NEOPS", "due_date": "29/06/2026", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "L", "has_ref": true}, {"reference": "SF-098624", "customer": "LB Harrow", "location": "Various", "num_machines": "23", "model": "NEOPS", "due_date": "01/07/2026", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "L", "has_ref": true}, {"reference": "Smartfolio EPD", "customer": "LB Richmond", "location": "Various", "num_machines": "181", "model": "NEOPS", "due_date": "06/07/2026", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "XL", "has_ref": true}, {"reference": "SF-099243", "customer": "LB Richmond", "location": "Paradise & Arragon Rd MSCP's", "num_machines": "8", "model": "CWT", "due_date": "06/07/2026", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "S", "has_ref": true}, {"reference": "SF-098774", "customer": "Bude Stratton Town Council", "location": "The Park Centre", "num_machines": "2", "model": "NEOPS", "due_date": "01/07/2026", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "XS", "has_ref": true}, {"reference": "SF 098195", "customer": "Bradford Teaching Hospitals", "location": "Teaching Hospital", "num_machines": "2", "model": "NEOPS", "due_date": "ASAP", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "XS", "has_ref": true}, {"reference": "Smartfolio EPD -", "customer": "Smart Parking", "location": "Market Street Car Park", "num_machines": "1", "model": "NEOPS", "due_date": "21/07/2026", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "XS", "has_ref": true}, {"reference": "SF-103758", "customer": "NSL Services Ltd - Worthing", "location": "Marine Parade", "num_machines": "1", "model": "NEOPS", "due_date": "ASAP", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "XS", "has_ref": true}, {"reference": "Smartfolio EPD", "customer": "Premier Parking Solutions", "location": "George Arcade", "num_machines": "1", "model": "NEOPS", "due_date": "ASAP", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "XS", "has_ref": true}, {"reference": "Smartfolio EPD", "customer": "SABA", "location": "Cheltenham and Gloucester Hospitals", "num_machines": "8", "model": "NEOPS", "due_date": "01/07/26", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "S", "has_ref": true}, {"reference": "GERMANY ASSISTANCE\n(Stadt Frankenthal)", "customer": "GERMANY ASSISTANCE\n(Stadt Frankenthal)", "location": "", "num_machines": "29", "model": "NEOPS", "due_date": "ASAP", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "L", "has_ref": false}, {"reference": "Smartfolio EPD", "customer": "Smart Parking", "location": "Rosies Kitchaen", "num_machines": "1", "model": "NEOPS", "due_date": "46217", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "XS", "has_ref": true}, {"reference": "Smartfolio EPD", "customer": "Smart Parking", "location": "topsham RFC", "num_machines": "1", "model": "NEOPS", "due_date": "ASAP", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "XS", "has_ref": true}, {"reference": "Smartfolio EPD", "customer": "Smart Parking", "location": "The Brewery Inn", "num_machines": "1", "model": "NEOPS", "due_date": "ASAP", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "XS", "has_ref": true}, {"reference": "SF-104941", "customer": "Creative Car Park", "location": "Farnham Maltings", "num_machines": "2", "model": "NEOPS", "due_date": "ASAP", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "M", "has_ref": true}, {"reference": "Smartfolio EP", "customer": "Smart Parking", "location": "New Garden Street", "num_machines": "2", "model": "NEOPS", "due_date": "23/07/2026", "allocated_to": "Suna", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "S", "has_ref": true}];
+// ── Data (populated after auth + fetch) ───────────────────────────────────────
+var MEMBER_EMAIL = 'suna.olgac@arrive.com';
+var JOBS = [], COMPLETED = [];
 var LH = {"XS": 1, "S": 2, "M": 4, "L": 8, "XL": 16};
 const CAP2W = 60;
+var CHANGELOG = [];
 
+// ── Auth & data loading ───────────────────────────────────────────────────────
+var _authOverlay  = document.getElementById('auth-overlay');
+var _loadOverlay  = document.getElementById('load-overlay');
+var _authSub      = document.getElementById('auth-sub');
+var _authWrong    = document.getElementById('auth-wrong');
+var _authWrongMsg = document.getElementById('auth-wrong-msg');
+var _loginBtn     = document.getElementById('auth-login-btn');
+var _logoutBtn    = document.getElementById('auth-logout-btn');
+var _navEmail     = document.getElementById('nav-user-email');
+var _navSignout   = document.getElementById('nav-signout-btn');
+
+function _showLogin(){
+  _authSub.style.display='';
+  _loginBtn.style.display='';
+  _authWrong.style.display='none';
+  _authOverlay.style.display='flex';
+}
+
+function _showWrongUser(email){
+  _authSub.style.display='none';
+  _loginBtn.style.display='none';
+  _authWrongMsg.textContent='You are signed in as '+email+'. This page belongs to Suna.';
+  _authWrong.style.display='flex';
+  _authOverlay.style.display='flex';
+}
+
+function _loadData(user){
+  if(user.email.toLowerCase()!==MEMBER_EMAIL.toLowerCase()){
+    _showWrongUser(user.email);
+    return;
+  }
+  _authOverlay.style.display='none';
+  _loadOverlay.style.display='flex';
+  _navEmail.textContent=user.email;
+  _navSignout.style.display='inline-block';
+
+  var token=user.token.access_token;
+  fetch('/.netlify/functions/jobs',{headers:{'Authorization':'Bearer '+token}})
+  .then(function(r){
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return r.json();
+  })
+  .then(function(data){
+    JOBS      = data.jobs      || [];
+    COMPLETED = data.completed || [];
+    _loadOverlay.style.display='none';
+    _populateStatusFilter();
+    renderPriorities();
+    renderJobs();
+    renderCompleted();
+    renderChangelog();
+  })
+  .catch(function(err){
+    document.getElementById('load-msg').textContent='Failed to load data — please refresh the page.';
+    console.error(err);
+  });
+}
+
+if(window.netlifyIdentity){
+  netlifyIdentity.on('init',  function(u){ if(u) _loadData(u); else _showLogin(); });
+  netlifyIdentity.on('login', function(u){ netlifyIdentity.close(); _loadData(u); });
+  netlifyIdentity.on('logout',function(){ _showLogin(); });
+  _loginBtn.addEventListener('click',  function(){ netlifyIdentity.open('login'); });
+  _logoutBtn.addEventListener('click', function(){ netlifyIdentity.logout(); });
+  _navSignout.addEventListener('click',function(){ netlifyIdentity.logout(); });
+} else {
+  // Local dev — hide auth & load overlays so page is usable
+  _authOverlay.style.display='none';
+  _loadOverlay.style.display='none';
+}
+
+// ── Render helpers ────────────────────────────────────────────────────────────
 function esc(s){
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
@@ -465,20 +545,11 @@ function renderPriorities(){
 }
 
 // ── Jobs table ────────────────────────────────────────────────────────────────
-let sCol='due_date_iso', sDir=1;
+let sCol='due_date_iso',sDir=1;
 const BANDS=['overdue','thisweek','next2w','later','unscheduled'];
 const BLBL={overdue:'&#9888; Overdue',thisweek:'This Week',next2w:'Next 2 Weeks',later:'Later',unscheduled:'Unscheduled'};
 const BCL={overdue:'band-ovd',thisweek:'band-tw',next2w:'band-n2w',later:'band-lt',unscheduled:'band-un'};
 
-function sortedJobs(jobs){
-  return [...jobs].sort((a,b)=>{
-    let av=a[sCol]||'', bv=b[sCol]||'';
-    if(!av&&bv) return 1; if(av&&!bv) return -1;
-    if(sCol==='days_left'){av=a.days_left!==null?a.days_left:9999;bv=b.days_left!==null?b.days_left:9999;}
-    if(sCol==='level'){const O={XS:1,S:2,M:3,L:4,XL:5};av=O[(a.level||'').toUpperCase()]||0;bv=O[(b.level||'').toUpperCase()]||0;}
-    return av<bv?-sDir:av>bv?sDir:0;
-  });
-}
 function filteredJobs(){
   const ft=document.getElementById('f-type').value;
   const fs=document.getElementById('f-status').value;
@@ -494,11 +565,18 @@ function filteredJobs(){
     return true;
   });
 }
+function sortedJobs(jobs){
+  return [...jobs].sort((a,b)=>{
+    let av=a[sCol]||'',bv=b[sCol]||'';
+    if(!av&&bv) return 1; if(av&&!bv) return -1;
+    if(sCol==='days_left'){av=a.days_left!==null?a.days_left:9999;bv=b.days_left!==null?b.days_left:9999;}
+    if(sCol==='level'){const O={XS:1,S:2,M:3,L:4,XL:5};av=O[(a.level||'').toUpperCase()]||0;bv=O[(b.level||'').toUpperCase()]||0;}
+    return av<bv?-sDir:av>bv?sDir:0;
+  });
+}
 function jobRow(j){
-  var slaDeadline=j.sla_deadline||j.effective_deadline||'';
-  var slaCell=slaDeadline?
-    (j.sla_breach?'<span class="ovdt" title="Past SLA">&#9888; '+esc(slaDeadline)+'</span>':
-     '<span class="okt">'+esc(slaDeadline)+'</span>'):'<span class="mut">N/A</span>';
+  const slaD=j.sla_deadline||j.effective_deadline||'';
+  const slaCell=slaD?(j.sla_breach?'<span class="ovdt">&#9888; '+esc(slaD)+'</span>':'<span class="okt">'+esc(slaD)+'</span>'):'<span class="mut">N/A</span>';
   const loc=j.location?'<br><span style="font-size:.72rem;color:var(--muted)">'+esc(j.location)+'</span>':'';
   const hasDetail=!!(j.comments||j.sales_comments);
   const expBtn=hasDetail?'<button class="exp-btn">&#9660;</button>':'';
@@ -527,7 +605,7 @@ function renderJobs(){
     document.getElementById('f-period').value==='all'&&sCol==='due_date_iso');
   document.getElementById('j-cnt').textContent=fj.length;
   const el=document.getElementById('jobs-table');
-  if(!sj.length){ el.innerHTML='<div class="empty">No jobs match the current filters.</div>'; return; }
+  if(!sj.length){el.innerHTML='<div class="empty">No jobs match the current filters.</div>';return;}
   const thead='<thead><tr>'+
     ['reference','order_type','customer','level','due_date_iso','days_left','status','','']
     .map((c,i)=>{
@@ -558,13 +636,13 @@ function renderJobs(){
     });
   });
   el.querySelector('table').addEventListener('click',function(e){
-    var btn=e.target.closest('.exp-btn');
+    const btn=e.target.closest('.exp-btn');
     if(!btn) return;
-    var mainRow=btn.closest('tr');
-    var detailRow=mainRow.nextElementSibling;
-    if(detailRow&&detailRow.classList.contains('detail-row')){
-      var open=detailRow.style.display!=='none';
-      detailRow.style.display=open?'none':'table-row';
+    const mainRow=btn.closest('tr');
+    const dRow=mainRow.nextElementSibling;
+    if(dRow&&dRow.classList.contains('detail-row')){
+      const open=dRow.style.display!=='none';
+      dRow.style.display=open?'none':'table-row';
       btn.innerHTML=open?'&#9660;':'&#9650;';
       btn.classList.toggle('open',!open);
     }
@@ -582,7 +660,7 @@ function toggleCompleted(){
 function renderCompleted(){
   document.getElementById('c-cnt').textContent=COMPLETED.length;
   const el=document.getElementById('comp-table');
-  if(!COMPLETED.length){ el.innerHTML='<div class="empty">No completed jobs yet.</div>'; return; }
+  if(!COMPLETED.length){el.innerHTML='<div class="empty">No completed jobs yet.</div>';return;}
   const sorted=[...COMPLETED].sort((a,b)=>(b.due_date||'').localeCompare(a.due_date||''));
   let html='<div class="comp-wrap"><table><thead><tr><th>Reference</th><th>Type</th><th>Customer</th><th>Level</th><th>Completed</th></tr></thead><tbody>';
   sorted.forEach(j=>{
@@ -598,30 +676,7 @@ function renderCompleted(){
   el.innerHTML=html;
 }
 
-// ── Status filter ─────────────────────────────────────────────────────────────
-(function(){
-  const statuses=[...new Set(JOBS.map(j=>j.status).filter(Boolean))].sort();
-  const sel=document.getElementById('f-status');
-  statuses.forEach(s=>{const o=document.createElement('option');o.value=s.toLowerCase();o.textContent=s;sel.appendChild(o);});
-})();
-['f-type','f-status','f-period'].forEach(id=>document.getElementById(id).addEventListener('change',renderJobs));
-document.getElementById('f-reset').addEventListener('click',()=>{
-  document.getElementById('f-type').value='all';
-  document.getElementById('f-status').value='all';
-  document.getElementById('f-period').value='all';
-  sCol='due_date_iso';sDir=1;renderJobs();
-});
-
-// ── Nav highlight ─────────────────────────────────────────────────────────────
-const _secs=['priorities','jobs','completed','changelog'],_nl={};
-_secs.forEach(id=>{_nl[id]=document.querySelector('.nav a[href="#'+id+'"]');});
-window.addEventListener('scroll',()=>{
-  let cur=_secs[0];
-  _secs.forEach(id=>{const el=document.getElementById(id);if(el&&el.getBoundingClientRect().top<=80)cur=id;});
-  _secs.forEach(id=>{if(_nl[id])_nl[id].classList.toggle('act',id===cur);});
-},{passive:true});
-
-// ── Changelog ────────────────────────────────────────────────────────────────
+// ── Changelog ─────────────────────────────────────────────────────────────────
 function renderChangelog(){
   document.getElementById('cl-cnt').textContent=CHANGELOG.length;
   const el=document.getElementById('changelog-content');
@@ -644,10 +699,29 @@ function renderChangelog(){
   el.innerHTML=html;
 }
 
-renderPriorities();
-renderJobs();
-renderCompleted();
-renderChangelog();
+// ── Status filter ─────────────────────────────────────────────────────────────
+function _populateStatusFilter(){
+  const statuses=[...new Set(JOBS.map(j=>j.status).filter(Boolean))].sort();
+  const sel=document.getElementById('f-status');
+  sel.innerHTML='<option value="all">All Statuses</option>';
+  statuses.forEach(s=>{const o=document.createElement('option');o.value=s.toLowerCase();o.textContent=s;sel.appendChild(o);});
+}
+['f-type','f-status','f-period'].forEach(id=>document.getElementById(id).addEventListener('change',renderJobs));
+document.getElementById('f-reset').addEventListener('click',()=>{
+  document.getElementById('f-type').value='all';
+  document.getElementById('f-status').value='all';
+  document.getElementById('f-period').value='all';
+  sCol='due_date_iso';sDir=1;renderJobs();
+});
+
+// ── Nav scroll highlight ──────────────────────────────────────────────────────
+const _secs=['priorities','jobs','completed','changelog'],_nl={};
+_secs.forEach(id=>{_nl[id]=document.querySelector('.nav a[href="#'+id+'"]');});
+window.addEventListener('scroll',()=>{
+  let cur=_secs[0];
+  _secs.forEach(id=>{const el=document.getElementById(id);if(el&&el.getBoundingClientRect().top<=80)cur=id;});
+  _secs.forEach(id=>{if(_nl[id])_nl[id].classList.toggle('act',id===cur);});
+},{passive:true});
 </script>
 </body>
 </html>

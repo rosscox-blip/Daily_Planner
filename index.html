@@ -4,9 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Team Planner &mdash; Software Customisations</title>
+<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <style>
-:root{--bg:#0e0e20;--bg2:#13132e;--text:#d8d8f0;--muted:#6060a0;--pink:#e91e8c;--border:#26265a}
-[data-theme="light"]{--bg:#f0f0f8;--bg2:#ffffff;--text:#1a1a3a;--muted:#5858a0;--border:#d0d0e8}
+[data-netlify-identity-button]{display:none!important}
+:root{--bg:#0e0e20;--bg2:#13132e;--text:#d8d8f0;--muted:#8888c0;--pink:#e91e8c;--border:#26265a}
+[data-theme="light"]{--bg:#f0f0f8;--bg2:#ffffff;--text:#1a1a3a;--muted:#5050a0;--border:#d0d0e8}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
      background:var(--bg);color:var(--text);display:flex;flex-direction:column;
@@ -32,7 +34,7 @@ footer{margin-top:40px;color:var(--muted);font-size:.72rem;text-align:center}
 <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">&#9728; Light</button>
 <h1>Team Planner</h1>
 <div class="sub">Software Customisations &mdash; Flowbird / Arrive<br>
-Updated 28 Jul 2026, 14:08 &middot; Refreshes hourly</div>
+Updated 28 Jul 2026, 14:40 &middot; Refreshes hourly</div>
 <div class="links"><a href="emie.html" class="member-link"><span class="mi">E</span><span class="mn">Emie</span></a>
 <a href="jay.html" class="member-link"><span class="mi">J</span><span class="mn">Jay</span></a>
 <a href="rob.html" class="member-link"><span class="mi">R</span><span class="mn">Rob</span></a>
@@ -40,10 +42,16 @@ Updated 28 Jul 2026, 14:08 &middot; Refreshes hourly</div>
 <a href="sofia.html" class="member-link"><span class="mi">S</span><span class="mn">Sofia</span></a>
 <a href="suna.html" class="member-link"><span class="mi">S</span><span class="mn">Suna</span></a>
 <a href="tristan.html" class="member-link"><span class="mi">T</span><span class="mn">Tristan</span></a></div>
-<footer>Each page shows only that person&rsquo;s own jobs.<br>Data sourced from the team Google Sheet.</footer>
+<footer>Log in with your work email to view your jobs.<br>Data sourced from the team Google Sheet.</footer>
 <script>
 (function(){var t=localStorage.getItem('planner_theme')||'dark';document.documentElement.setAttribute('data-theme',t);var b=document.getElementById('theme-btn');if(b)b.innerHTML=t==='dark'?'&#9728; Light':'&#9790; Dark';})();
 function toggleTheme(){var t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',t);localStorage.setItem('planner_theme',t);var b=document.getElementById('theme-btn');if(b)b.innerHTML=t==='dark'?'&#9728; Light':'&#9790; Dark';}
+var PAGE_MAP={"emievic.yousaf@arrive.com":"emie.html","jayprakash.basaliyal@arrive.com":"jay.html","robert.smith@arrive.com":"rob.html","ross.cox@arrive.com":"ross.html","sofia.bater@arrive.com":"sofia.html","suna.olgac@arrive.com":"suna.html","tristan.pointer@arrive.com":"tristan.html"};
+if(window.netlifyIdentity){
+  function _redir(u){if(u&&PAGE_MAP[u.email.toLowerCase()])window.location.href=PAGE_MAP[u.email.toLowerCase()];}
+  netlifyIdentity.on('init',_redir);
+  netlifyIdentity.on('login',function(u){netlifyIdentity.close();_redir(u);});
+}
 </script>
 </body>
 </html>
