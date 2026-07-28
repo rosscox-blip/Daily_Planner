@@ -59,7 +59,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
            padding:6px 12px;border-radius:6px;font-size:.76rem;cursor:pointer;white-space:nowrap;flex-shrink:0}
 .theme-btn:hover{border-color:var(--pink);color:var(--pink)}
 .nav{background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
-.nav-inner{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;padding-right:16px}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;justify-content:space-between;align-items:center}
 .nav-links{display:flex}
 .nav a{padding:10px 22px;text-decoration:none;color:var(--muted);font-size:0.78rem;
        font-weight:700;text-transform:uppercase;letter-spacing:.06em;
@@ -69,6 +69,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
 .nav-signout{background:none;border:1px solid var(--border);color:var(--muted);
              padding:4px 10px;border-radius:5px;font-size:.7rem;cursor:pointer}
 .nav-signout:hover{border-color:var(--red);color:var(--red)}
+.team-toggle{display:flex;gap:3px}
+.tgl-btn{background:none;border:1px solid var(--border);color:var(--muted);
+         padding:4px 12px;border-radius:6px;font-size:.72rem;font-weight:700;cursor:pointer;transition:all .15s}
+.tgl-btn.active{background:var(--pink);border-color:var(--pink);color:#fff}
+.tgl-btn:hover:not(.active){border-color:var(--pink);color:var(--pink)}
+.owner-badge{display:inline-block;font-size:.65rem;font-weight:700;padding:1px 6px;
+             border-radius:4px;background:rgba(233,30,140,.15);color:var(--pink);margin-left:4px}
 main{max-width:1200px;margin:0 auto;padding:28px 16px}
 section{margin-bottom:52px}
 .sec-hdr{margin-bottom:6px;display:flex;align-items:baseline;gap:10px}
@@ -158,7 +165,7 @@ footer{text-align:center;padding:24px 16px;color:var(--muted);font-size:.72rem;
     <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">&#9728; Light</button>
     <div class="hdr-ts">
       <span class="cur-time" id="current-time">--:--</span>
-      <span>Updated 28 Jul 2026, 16:12</span>
+      <span>Updated 28 Jul 2026, 16:18</span>
     </div>
   </div>
 </header>
@@ -170,9 +177,15 @@ footer{text-align:center;padding:24px 16px;color:var(--muted);font-size:.72rem;
       <a href="#jobs">All Jobs</a>
       <a href="#completed">Completed</a>
     </div>
-    <div class="nav-user">
-      <span id="nav-user-email"></span>
-      <button class="nav-signout" id="nav-signout-btn" style="display:none">Sign out</button>
+    <div class="nav-right">
+      <div class="team-toggle">
+        <button id="toggle-mine"  class="tgl-btn active" onclick="setView(false)">My Jobs</button>
+        <button id="toggle-team" class="tgl-btn"        onclick="setView(true)">Team Jobs</button>
+      </div>
+      <div class="nav-user">
+        <span id="nav-user-email"></span>
+        <button class="nav-signout" id="nav-signout-btn" style="display:none">Sign out</button>
+      </div>
     </div>
   </div>
 </nav>
@@ -225,8 +238,20 @@ function _tick(){
 _tick(); setInterval(_tick,30000);
 
 var MEMBER_EMAIL = 'anna.kulesza@arrive.com';
-var JOBS = [], COMPLETED = [];
+var JOBS = [], COMPLETED = [], ALL_JOBS = [], ALL_COMPLETED = [];
+var _teamView = false;
 var CHANGELOG = [];
+
+function setView(team){
+  _teamView = team;
+  document.getElementById('toggle-mine').classList.toggle('active', !team);
+  document.getElementById('toggle-team').classList.toggle('active',  team);
+  renderPriorities();
+  renderJobs();
+  renderCompleted();
+}
+function _activeJobs()      { return _teamView ? ALL_JOBS      : JOBS; }
+function _activeCompleted() { return _teamView ? ALL_COMPLETED : COMPLETED; }
 
 var _authOverlay  = document.getElementById('auth-overlay');
 var _loadOverlay  = document.getElementById('load-overlay');
@@ -257,8 +282,10 @@ function _loadData(user){
   fetch('/.netlify/functions/jobs',{headers:{'Authorization':'Bearer '+token}})
   .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
   .then(function(data){
-    JOBS      = data.jobs      || [];
-    COMPLETED = data.completed || [];
+    JOBS          = data.jobs          || [];
+    COMPLETED     = data.completed     || [];
+    ALL_JOBS      = data.all_jobs      || JOBS;
+    ALL_COMPLETED = data.all_completed || COMPLETED;
     _loadOverlay.style.display='none';
     renderPriorities();
     renderJobs();
@@ -336,7 +363,7 @@ function swDateCell(j){
 }
 
 function renderPriorities(){
-  var pjobs=JOBS.filter(function(j){
+  var pjobs=_activeJobs().filter(function(j){
     return j.overall_status==='Issue'||j.overdue||(j.days_left!==null&&j.days_left<14);
   }).sort(function(a,b){
     var oa=a.overall_status==='Issue'?0:1,ob=b.overall_status==='Issue'?0:1;
@@ -354,8 +381,9 @@ function renderPriorities(){
   pjobs.forEach(function(j){
     var cls=j.overall_status==='Issue'?'issue':'todo';
     var swRow=j.sw_go_live_date?'<div class="pc-date"><span class="pc-dl">SW Go Live</span>'+esc(j.sw_go_live_date)+'</div>':'';
+    var ownerBadge=_teamView&&j.owned_by?'<span class="owner-badge">'+esc(j.owned_by.charAt(0).toUpperCase()+j.owned_by.slice(1))+'</span>':'';
     html+='<div class="pc '+cls+'">'+
-      '<div class="pc-ref">'+esc(j.reference)+'</div>'+
+      '<div class="pc-ref">'+esc(j.reference)+ownerBadge+'</div>'+
       '<div class="pc-cust">'+esc(j.customer)+'</div>'+
       '<div class="pc-dates">'+
         '<div class="pc-date"><span class="pc-dl">Your Due Date</span>'+(j.due_date?esc(j.due_date):'TBC')+'</div>'+
@@ -370,22 +398,26 @@ function renderPriorities(){
 }
 
 function renderJobs(){
-  document.getElementById('j-cnt').textContent=JOBS.length;
+  var activeJobs=_activeJobs();
+  document.getElementById('j-cnt').textContent=activeJobs.length;
   var el=document.getElementById('jobs-table');
-  if(!JOBS.length){el.innerHTML='<div class="empty">No active jobs.</div>';return;}
-  var sorted=[...JOBS].sort(function(a,b){
+  if(!activeJobs.length){el.innerHTML='<div class="empty">No active jobs.</div>';return;}
+  var sorted=[...activeJobs].sort(function(a,b){
     var oa=a.overall_status==='Issue'?0:1,ob=b.overall_status==='Issue'?0:1;
     if(oa!==ob) return oa-ob;
     var da=a.due_date_iso||'',db=b.due_date_iso||'';
     if(!da&&db) return 1; if(da&&!db) return -1;
     return da<db?-1:da>db?1:0;
   });
+  var ownerCol=_teamView?'<th>Owner</th>':'';
+  var ownerSpan=_teamView?9:8;
   var html='<div class="tbl-wrap"><table><thead><tr>'+
     '<th>Reference</th><th>Customer</th><th>Your Due Date</th>'+
-    '<th>SW Go Live</th><th>Days</th><th>Status</th><th>Tasks</th><th></th>'+
+    '<th>SW Go Live</th><th>Days</th><th>Status</th><th>Tasks</th>'+ownerCol+'<th></th>'+
     '</tr></thead><tbody>';
   sorted.forEach(function(j){
     var hasTasks=j.tasks&&Object.keys(j.tasks).length>0;
+    var ownerCell=_teamView?'<td><span class="owner-badge">'+esc((j.owned_by||'?').charAt(0).toUpperCase()+(j.owned_by||'?').slice(1))+'</span></td>':'';
     html+='<tr>'+
       '<td class="rc">'+esc(j.reference)+'</td>'+
       '<td>'+esc(j.customer)+'</td>'+
@@ -394,10 +426,11 @@ function renderJobs(){
       '<td class="dc">'+daysLabel(j)+'</td>'+
       '<td>'+statusBadge(j.overall_status)+'</td>'+
       '<td>'+taskSummary(j)+'</td>'+
+      ownerCell+
       '<td>'+(hasTasks?'<button class="exp-btn">&#9660;</button>':'')+'</td>'+
     '</tr>';
     if(hasTasks){
-      html+='<tr class="detail-row" style="display:none"><td colspan="8">'+taskGrid(j.tasks)+'</td></tr>';
+      html+='<tr class="detail-row" style="display:none"><td colspan="'+ownerSpan+'">'+taskGrid(j.tasks)+'</td></tr>';
     }
   });
   html+='</tbody></table></div>';
@@ -425,21 +458,25 @@ function toggleCompleted(){
 }
 
 function renderCompleted(){
-  document.getElementById('c-cnt').textContent=COMPLETED.length;
+  var activeComp=_activeCompleted();
+  document.getElementById('c-cnt').textContent=activeComp.length;
   var el=document.getElementById('comp-table');
-  if(!COMPLETED.length){el.innerHTML='<div class="empty">No completed jobs yet.</div>';return;}
-  var sorted=[...COMPLETED].sort(function(a,b){
+  if(!activeComp.length){el.innerHTML='<div class="empty">No completed jobs yet.</div>';return;}
+  var sorted=[...activeComp].sort(function(a,b){
     return (b.due_date_iso||'').localeCompare(a.due_date_iso||'');
   });
+  var ownerCol=_teamView?'<th>Owner</th>':'';
   var html='<div class="tbl-wrap"><table><thead><tr>'+
-    '<th>Reference</th><th>Customer</th><th>Due Date</th><th>SW Go Live</th>'+
+    '<th>Reference</th><th>Customer</th><th>Due Date</th><th>SW Go Live</th>'+ownerCol+
     '</tr></thead><tbody>';
   sorted.forEach(function(j){
+    var ownerCell=_teamView?'<td><span class="owner-badge">'+esc((j.owned_by||'?').charAt(0).toUpperCase()+(j.owned_by||'?').slice(1))+'</span></td>':'';
     html+='<tr>'+
       '<td class="rc">'+esc(j.reference)+'</td>'+
       '<td>'+esc(j.customer)+'</td>'+
       '<td class="dc">'+(j.due_date?esc(j.due_date):'<span class="mut">&mdash;</span>')+'</td>'+
       '<td class="dc">'+swDateCell(j)+'</td>'+
+      ownerCell+
     '</tr>';
   });
   html+='</tbody></table></div>';
