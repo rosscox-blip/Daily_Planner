@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Emie &mdash; Work Planner</title>
+<style>
+:root {
+  --bg:     #0e0e20;
+  --bg2:    #13132e;
+  --card:   #1a1a3a;
+  --border: #26265a;
+  --text:   #d8d8f0;
+  --muted:  #6060a0;
+  --pink:   #e91e8c;
+  --nmo:    #f97316;
+  --hw:     #3b82f6;
+  --cr:     #a855f7;
+  --green:  #22c55e;
+  --amber:  #f59e0b;
+  --red:    #ef4444;
+  --r:      8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+     background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh}
+
+/* Header */
+.hdr{background:var(--bg2);border-bottom:2px solid var(--pink);padding:16px 20px}
+.hdr-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.avatar{width:46px;height:46px;border-radius:50%;background:var(--pink);display:flex;
+        align-items:center;justify-content:center;font-size:18px;font-weight:700;
+        color:#fff;flex-shrink:0}
+.hdr-name{font-size:1.35rem;font-weight:700}
+.hdr-sub{color:var(--muted);font-size:0.78rem}
+.hdr-ts{margin-left:auto;text-align:right;font-size:0.75rem;color:var(--muted)}
+.hdr-ts strong{color:var(--text);display:block;font-size:0.85rem}
+.hdr-ts small{font-size:0.7rem}
+
+/* Nav */
+.nav{background:var(--bg2);border-bottom:1px solid var(--border);
+     position:sticky;top:0;z-index:100}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex}
+.nav a{padding:10px 22px;text-decoration:none;color:var(--muted);font-size:0.78rem;
+       font-weight:700;text-transform:uppercase;letter-spacing:.06em;
+       border-bottom:3px solid transparent;transition:all .15s}
+.nav a:hover,.nav a.act{color:var(--pink);border-color:var(--pink)}
+
+/* Main */
+main{max-width:1200px;margin:0 auto;padding:28px 16px}
+section{margin-bottom:52px}
+
+/* Section titles */
+.sec-hdr{margin-bottom:6px;display:flex;align-items:baseline;gap:10px}
+.sec-hdr h2{font-size:1.05rem;font-weight:700}
+.sec-cnt{background:var(--border);color:var(--muted);font-size:.72rem;
+         padding:2px 9px;border-radius:12px;font-weight:700}
+.sec-sub{color:var(--muted);font-size:.78rem;margin-bottom:18px}
+
+/* Capacity bar */
+.cap{background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+     padding:14px 18px;margin-bottom:22px}
+.cap-lbl{font-size:.7rem;color:var(--muted);text-transform:uppercase;
+         letter-spacing:.06em;margin-bottom:8px}
+.cap-bg{background:var(--border);border-radius:4px;height:8px;margin-bottom:7px}
+.cap-fill{height:100%;border-radius:4px;transition:width .4s}
+.cap-txt{font-size:.8rem;color:var(--muted)}
+.cap-txt strong{color:var(--text)}
+
+/* Priority grid */
+.pg{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}
+.p-empty{background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+         padding:24px;text-align:center;color:var(--green);font-size:.9rem}
+
+/* Priority card */
+.pc{background:var(--card);border:1px solid var(--border);border-radius:var(--r);
+    border-left:4px solid var(--border);padding:14px;display:flex;flex-direction:column;gap:9px}
+.pc.tnmo{border-left-color:var(--nmo)}
+.pc.thw {border-left-color:var(--hw)}
+.pc.tcr {border-left-color:var(--cr)}
+.pc.ovd {background:#180e1a;border-color:#3a1a2a}
+
+/* NMO callout */
+.nmo-call{background:rgba(249,115,22,.1);border:1px solid rgba(249,115,22,.3);
+          border-radius:6px;padding:8px 10px;font-size:.73rem;color:#fbbf24;line-height:1.4}
+.nmo-call strong{color:var(--nmo)}
+
+.pc-type{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.tnmo .pc-type{color:var(--nmo)}.thw .pc-type{color:var(--hw)}.tcr .pc-type{color:var(--cr)}
+.pc-ref{font-size:.95rem;font-weight:700;font-family:monospace;color:var(--pink)}
+.pc-ref a{color:inherit;text-decoration:none}.pc-ref a:hover{text-decoration:underline}
+.pc-cust{font-size:.85rem;font-weight:600}
+.pc-meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.pc-due{font-size:.76rem;color:var(--muted)}
+.pc-cmt{font-size:.73rem;color:var(--muted);font-style:italic;
+        white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Badges */
+.b{font-size:.68rem;font-weight:700;padding:2px 7px;border-radius:10px;
+   text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+.bl {background:rgba(255,255,255,.07);color:var(--text)}
+.bo {background:rgba(239,68,68,.18);color:var(--red)}
+.bw {background:rgba(245,158,11,.18);color:var(--amber)}
+.bg {background:rgba(34,197,94,.15);color:var(--green)}
+.bs {background:rgba(239,68,68,.18);color:var(--red)}
+.bnmo{background:rgba(249,115,22,.15);color:var(--nmo)}
+.bhw {background:rgba(59,130,246,.15);color:var(--hw)}
+.bcr {background:rgba(168,85,247,.15);color:var(--cr)}
+.bst {background:rgba(255,255,255,.06);color:var(--muted)}
+
+/* Filter bar */
+.fb{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;align-items:center}
+.fb select{background:var(--card);border:1px solid var(--border);color:var(--text);
+           padding:6px 10px;border-radius:6px;font-size:.78rem;cursor:pointer}
+.fb select:focus{outline:none;border-color:var(--pink)}
+.fb-reset{background:none;border:1px solid var(--border);color:var(--muted);
+          padding:6px 12px;border-radius:6px;font-size:.76rem;cursor:pointer}
+.fb-reset:hover{border-color:var(--pink);color:var(--pink)}
+.fb label{font-size:.73rem;color:var(--muted)}
+
+/* Jobs table */
+.tbl-wrap{overflow-x:auto;border-radius:var(--r);border:1px solid var(--border)}
+.band-row td{padding:7px 12px;font-size:.7rem;font-weight:700;text-transform:uppercase;
+             letter-spacing:.07em}
+.band-ovd td {background:rgba(239,68,68,.12);color:var(--red)}
+.band-tw  td {background:rgba(245,158,11,.1); color:var(--amber)}
+.band-n2w td {background:rgba(59,130,246,.08);color:#60a0f8}
+.band-lt  td {background:rgba(255,255,255,.04);color:var(--muted)}
+.band-un  td {background:rgba(255,255,255,.02);color:var(--muted);font-style:italic}
+table{width:100%;border-collapse:collapse}
+th{padding:9px 11px;text-align:left;font-size:.7rem;text-transform:uppercase;
+   letter-spacing:.05em;color:var(--muted);background:var(--bg2);
+   border-bottom:1px solid var(--border);white-space:nowrap;
+   cursor:pointer;user-select:none;position:sticky;top:43px}
+th:hover{color:var(--text)}
+th.sa::after{content:' ↑';color:var(--pink)}
+th.sd::after{content:' ↓';color:var(--pink)}
+td{padding:9px 11px;border-bottom:1px solid rgba(255,255,255,.04);
+   vertical-align:top;font-size:.82rem}
+tr:hover td{background:rgba(255,255,255,.025)}
+tr.rnmo td:first-child{border-left:3px solid var(--nmo)}
+tr.rhw  td:first-child{border-left:3px solid var(--hw)}
+tr.rcr  td:first-child{border-left:3px solid var(--cr)}
+.rc{font-family:monospace;color:var(--pink);font-weight:700;white-space:nowrap}
+.rc a{color:inherit;text-decoration:none}.rc a:hover{text-decoration:underline}
+.cc{color:var(--muted);font-size:.76rem;max-width:180px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dc{white-space:nowrap;font-weight:600}
+.ovdt{color:var(--red)}.ambt{color:var(--amber)}.okt{color:var(--green)}.mut{color:var(--muted)}
+
+/* Empty */
+.empty{text-align:center;padding:36px;color:var(--muted);font-size:.88rem}
+
+/* Completed */
+.comp-wrap{overflow-x:auto;border-radius:var(--r);border:1px solid var(--border)}
+
+/* Footer */
+footer{text-align:center;padding:24px 16px;color:var(--muted);font-size:.72rem;
+       border-top:1px solid var(--border);margin-top:20px}
+
+@media(max-width:600px){
+  .pg{grid-template-columns:1fr}
+  .hdr-ts{margin-left:0;width:100%;text-align:left}
+  th,td{padding:7px 8px}
+  .nav a{padding:10px 14px;font-size:.72rem}
+}
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-inner">
+    <div class="avatar">E</div>
+    <div>
+      <div class="hdr-name">Emie</div>
+      <div class="hdr-sub">Software Customisations &mdash; Flowbird / Arrive</div>
+    </div>
+    <div class="hdr-ts">
+      <strong>28 Jul 2026, 08:07</strong>
+      <small>Updates hourly</small>
+    </div>
+  </div>
+</header>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#priorities" class="act">Priorities</a>
+    <a href="#jobs">All Jobs</a>
+    <a href="#completed">Completed</a>
+  </div>
+</nav>
+
+<main>
+
+  <section id="priorities">
+    <div class="sec-hdr">
+      <h2>Your Priorities</h2>
+      <span class="sec-cnt" id="p-cnt">0</span>
+    </div>
+    <div class="sec-sub">Jobs due in the next 2 weeks, plus anything overdue</div>
+    <div id="priorities-content"></div>
+  </section>
+
+  <section id="jobs">
+    <div class="sec-hdr">
+      <h2>All Active Jobs</h2>
+      <span class="sec-cnt" id="j-cnt">0</span>
+    </div>
+    <div class="sec-sub">Your full pipeline &mdash; filter and sort to focus</div>
+    <div class="fb">
+      <label>Type</label>
+      <select id="f-type">
+        <option value="all">All Types</option>
+        <option value="nmo">New Machine Order</option>
+        <option value="hw">Hardware Upgrade</option>
+        <option value="cr">Change Request</option>
+      </select>
+      <label>Status</label>
+      <select id="f-status"><option value="all">All Statuses</option></select>
+      <label>Period</label>
+      <select id="f-period">
+        <option value="all">All Periods</option>
+        <option value="overdue">Overdue</option>
+        <option value="thisweek">This Week</option>
+        <option value="next2w">Next 2 Weeks</option>
+        <option value="later">Later</option>
+        <option value="unscheduled">Unscheduled</option>
+      </select>
+      <button class="fb-reset" id="f-reset">Clear filters</button>
+    </div>
+    <div id="jobs-table"></div>
+  </section>
+
+  <section id="completed">
+    <div class="sec-hdr">
+      <h2>Completed Jobs</h2>
+      <span class="sec-cnt" id="c-cnt">0</span>
+    </div>
+    <div class="sec-sub">All shipped work &mdash; newest first</div>
+    <div id="comp-table"></div>
+  </section>
+
+</main>
+
+<footer>
+  Daily Planner &mdash; Software Customisations &mdash; Flowbird / Arrive &nbsp;&middot;&nbsp;
+  Last updated 28 Jul 2026, 08:07 &nbsp;&middot;&nbsp; Updates hourly
+</footer>
+
+<script>
+const JOBS      = [{"reference": "UK2601C006", "servicenow": "", "customer": "Luton TC", "location": "Hazelbury Crescent", "num_customisations": "", "num_machines": "1", "model": "CWT", "due_date": "30/06/2026", "due_date_iso": "2026-06-30", "requested_date": "30/06/2026", "go_live_date": "30/06/2026", "date_logged": "16/06/2026", "sort_bucket": 1, "days_in_queue": 42, "parts_delivery_date": "NA", "parts_in_stock": true, "due_from_delivery": false, "sla_deadline": "14/07/2026", "effective_deadline": "14/07/2026", "sla_breach": false, "go_live_unconfirmed": false, "unscheduled": false, "blanket_logged": false, "customer_chose_far_date": false, "is_asap": false, "is_tbc": false, "days_left": -28, "due_soon": true, "overdue": true, "allocated_to": "Emie", "status": "Blocked/On Hold", "order_type": "New Machine Order", "source": "New Machine Orders", "comments": "08/06/2026\nWaiting for MID", "level": "M", "onecrmlink": "6998", "trackinglink": "UK2601C006", "has_ref": true}, {"reference": "FOC", "servicenow": "", "customer": "Denbighshire County Council", "location": "Pavilion CP", "num_customisations": "1", "num_machines": "3", "model": "CWT", "due_date": "24/07/2026", "due_date_iso": "2026-07-24", "requested_date": "ASAP", "go_live_date": "24/07/2026", "date_logged": "09/07/2026", "sort_bucket": 1, "days_in_queue": 19, "parts_delivery_date": "", "parts_in_stock": false, "due_from_delivery": false, "sla_deadline": "06/08/2026", "effective_deadline": "06/08/2026", "sla_breach": false, "go_live_unconfirmed": false, "unscheduled": false, "blanket_logged": false, "customer_chose_far_date": false, "is_asap": true, "is_tbc": false, "days_left": -4, "due_soon": true, "overdue": true, "allocated_to": "Emie", "status": "", "order_type": "Change Request", "source": "Change Requests", "comments": "G:\\Shared drives\\UK-Tech Support\\1 - CWT\\21 - Graphics\\Buttons\\PaymentButtons\n\n\"G:\\Shared drives\\UK-Tech Support\\1 - CWT\\21 - Graphics\\Tristan - Graphics Workspace 2024.08.07 onwards.pptx\" > Slide 167 / 171", "level": "M", "onecrmlink": "N/A", "trackinglink": "FOC", "has_ref": true}, {"reference": "UK2603S029", "servicenow": "", "customer": "Mid Sussex District Council", "location": "Other Sites", "num_customisations": "", "num_machines": "8", "model": "CWT", "due_date": "03/08/2026", "due_date_iso": "2026-08-03", "requested_date": "03/08/2026", "go_live_date": "03/08/2026", "date_logged": "16/06/2026", "sort_bucket": 1, "days_in_queue": 42, "parts_delivery_date": "03/08/2026", "parts_in_stock": false, "due_from_delivery": false, "sla_deadline": "14/07/2026", "effective_deadline": "14/07/2026", "sla_breach": false, "go_live_unconfirmed": false, "unscheduled": false, "blanket_logged": false, "customer_chose_far_date": false, "is_asap": false, "is_tbc": false, "days_left": 6, "due_soon": false, "overdue": false, "allocated_to": "Emie", "status": "To Do", "order_type": "New Machine Order", "source": "New Machine Orders", "comments": "Machines being fulffiled from Factory. JH", "level": "L", "onecrmlink": "23042\n14938", "trackinglink": "UK2603S029", "has_ref": true}, {"reference": "EPD", "servicenow": "", "customer": "NSL Worthing & Adur", "location": "Off Street", "num_customisations": "3", "num_machines": "18", "model": "CWT", "due_date": "05/08/2026", "due_date_iso": "2026-08-05", "requested_date": "TBC", "go_live_date": "??", "date_logged": "08/07/2026", "sort_bucket": 2, "days_in_queue": 20, "parts_delivery_date": "", "parts_in_stock": false, "due_from_delivery": false, "sla_deadline": "05/08/2026", "effective_deadline": "05/08/2026", "sla_breach": false, "go_live_unconfirmed": true, "unscheduled": true, "blanket_logged": false, "customer_chose_far_date": false, "is_asap": false, "is_tbc": true, "days_left": 8, "due_soon": false, "overdue": false, "allocated_to": "Emie", "status": "Awaiting Customer", "order_type": "Change Request", "source": "Change Requests", "comments": "Worthing: Late August\n\nAdur: September - please create tariffs in preperation\n09/07/2026: Full SDs requested (SW-GR-TR?)\n(Worthing Borough Council)", "level": "M", "onecrmlink": "N/A", "trackinglink": "EPD", "has_ref": true}, {"reference": "SF-105141", "servicenow": "", "customer": "Basildon DC", "location": "Various", "num_customisations": "6", "num_machines": "11", "model": "CWT", "due_date": "12/08/2026", "due_date_iso": "2026-08-12", "requested_date": "ASAP", "go_live_date": "??", "date_logged": "15/07/26", "sort_bucket": 2, "days_in_queue": 13, "parts_delivery_date": "", "parts_in_stock": false, "due_from_delivery": false, "sla_deadline": "12/08/2026", "effective_deadline": "12/08/2026", "sla_breach": false, "go_live_unconfirmed": true, "unscheduled": true, "blanket_logged": false, "customer_chose_far_date": false, "is_asap": true, "is_tbc": false, "days_left": 15, "due_soon": false, "overdue": false, "allocated_to": "Emie", "status": "To Do", "order_type": "Change Request", "source": "Change Requests", "comments": "", "level": "L", "onecrmlink": "26277", "trackinglink": "SF-105141", "has_ref": true}, {"reference": "SF-104972", "servicenow": "", "customer": "Newcastle CC", "location": "Grainger Town", "num_customisations": "1", "num_machines": "4", "model": "CWT", "due_date": "20/08/2026", "due_date_iso": "2026-08-20", "requested_date": "ASAP", "go_live_date": "??", "date_logged": "23/07/2026", "sort_bucket": 2, "days_in_queue": 5, "parts_delivery_date": "", "parts_in_stock": false, "due_from_delivery": false, "sla_deadline": "20/08/2026", "effective_deadline": "20/08/2026", "sla_breach": false, "go_live_unconfirmed": true, "unscheduled": true, "blanket_logged": false, "customer_chose_far_date": false, "is_asap": true, "is_tbc": false, "days_left": 23, "due_soon": false, "overdue": false, "allocated_to": "Emie", "status": "To Do", "order_type": "Change Request", "source": "Change Requests", "comments": "", "level": "S", "onecrmlink": "26457", "trackinglink": "SF-104972", "has_ref": true}, {"reference": "UK2604C048", "servicenow": "", "customer": "Blaby DC", "location": "Various", "num_customisations": "", "num_machines": "8", "model": "CWT", "due_date": "04/09/2026", "due_date_iso": "2026-09-04", "requested_date": "04/09/2026", "go_live_date": "04/09/2026", "date_logged": "16/06/2026", "sort_bucket": 1, "days_in_queue": 42, "parts_delivery_date": "04/09/2026", "parts_in_stock": false, "due_from_delivery": false, "sla_deadline": "14/07/2026", "effective_deadline": "14/07/2026", "sla_breach": false, "go_live_unconfirmed": false, "unscheduled": false, "blanket_logged": false, "customer_chose_far_date": false, "is_asap": false, "is_tbc": false, "days_left": 38, "due_soon": false, "overdue": false, "allocated_to": "Emie", "status": "To Do", "order_type": "New Machine Order", "source": "New Machine Orders", "comments": "", "level": "XL", "onecrmlink": "50358", "trackinglink": "UK2604C048", "has_ref": true}, {"reference": "UK2606S070", "servicenow": "", "customer": "Jaipur Spice", "location": "Jaipur Spice Car Park, 103 Haxby Road, York, YO31 8JS", "num_customisations": "", "num_machines": "1", "model": "CWT", "due_date": "25/09/2026", "due_date_iso": "2026-09-25", "requested_date": "25/09/2026", "go_live_date": "25/09/2026", "date_logged": "03/07/2026", "sort_bucket": 1, "days_in_queue": 25, "parts_delivery_date": "25/09/2026", "parts_in_stock": false, "due_from_delivery": false, "sla_deadline": "31/07/2026", "effective_deadline": "31/07/2026", "sla_breach": false, "go_live_unconfirmed": false, "unscheduled": false, "blanket_logged": false, "customer_chose_far_date": false, "is_asap": false, "is_tbc": false, "days_left": 59, "due_soon": false, "overdue": false, "allocated_to": "Emie", "status": "To Do", "order_type": "New Machine Order", "source": "New Machine Orders", "comments": "", "level": "L", "onecrmlink": "24879", "trackinglink": "UK2606S070", "has_ref": true}];
+const COMPLETED = [{"reference": "UK2601S005", "customer": "Royal Botanic Gardens", "location": "Kew Gardens", "num_machines": "4", "model": "CWT", "due_date": "27/03/2026", "allocated_to": "Emie", "status": "Completed", "order_type": "New Machine Order", "source": "New Machine Orders", "level": "L", "has_ref": true}, {"reference": "UK2512A162J", "customer": "LB Hammersmith", "location": "Holy Trinity, St Andrews & St Pauls Church", "num_machines": "4", "model": "CWT", "due_date": "04/05/2026", "allocated_to": "Emie", "status": "Completed", "order_type": "New Machine Order", "source": "New Machine Orders", "level": "M", "has_ref": true}, {"reference": "UK2603C030", "customer": "Exeter CC", "location": "Bystock Terrace & Holman Way", "num_machines": "2", "model": "CWT", "due_date": "03/07/2026", "allocated_to": "Emie", "status": "Completed", "order_type": "New Machine Order", "source": "New Machine Orders", "level": "L", "has_ref": true}, {"reference": "UK2408C132M", "customer": "Forestry England", "location": "Forest of Dean cycle centre", "num_machines": "1", "model": "CWT", "due_date": "18/05/2026", "allocated_to": "Emie", "status": "Completed", "order_type": "New Machine Order", "source": "New Machine Orders", "level": "M", "has_ref": true}, {"reference": "UK2606A064", "customer": "Tunbridge Wells BC", "location": "Tunbridge Wells Sports Centre", "num_machines": "2", "model": "CWT", "due_date": "24/06/26", "allocated_to": "Emie", "status": "Completed", "order_type": "New Machine Order", "source": "New Machine Orders", "level": "M", "has_ref": true}, {"reference": "UK2603S029", "customer": "Mid Sussex District Council", "location": "Vicarage, Hazelgrove, and Cyprus Road,", "num_machines": "8", "model": "CWT", "due_date": "10/07/2026", "allocated_to": "Emie", "status": "Completed", "order_type": "New Machine Order", "source": "New Machine Orders", "level": "XL", "has_ref": true}, {"reference": "UK2603S031", "customer": "Hamble PC", "location": "Foreshore Car Park", "num_machines": "2", "model": "CWT", "due_date": "30/7/2026", "allocated_to": "Emie", "status": "Completed", "order_type": "New Machine Order", "source": "New Machine Orders", "level": "L", "has_ref": true}, {"reference": "UK2606S069", "customer": "North Norfolk DC", "location": "Wayborn", "num_machines": "1", "model": "CWT", "due_date": "20/07/2026", "allocated_to": "Emie", "status": "Completed", "order_type": "New Machine Order", "source": "New Machine Orders", "level": "XL", "has_ref": true}, {"reference": "SF-103820", "customer": "East Sussex CC", "location": "Brooks Road", "num_machines": "1", "model": "CWT", "due_date": "27/07/2026", "allocated_to": "Emie", "status": "Completed", "order_type": "Hardware Upgrade", "source": "Hardware Upgrades", "level": "M", "has_ref": true}, {"reference": "SF-042460", "customer": "Group Nexus", "location": "St Peters retail park", "num_machines": "4", "model": "CWT", "due_date": "07/05/2026", "allocated_to": "Emie", "status": "Completed", "order_type": "Hardware Upgrade", "source": "Hardware Upgrades", "level": "S", "has_ref": true}, {"reference": "SF-098769", "customer": "Forestry England", "location": "Beechenhurst", "num_machines": "3", "model": "CWT", "due_date": "15/05/2026", "allocated_to": "Emie", "status": "Completed", "order_type": "Hardware Upgrade", "source": "Hardware Upgrades", "level": "S", "has_ref": true}, {"reference": "SF-099216", "customer": "Tunbridge Wells BC", "location": "Crescent_2 relocation - Sports Centre TN4 9TX", "num_machines": "1", "model": "CWT", "due_date": "01/07/2026", "allocated_to": "Emie", "status": "Completed", "order_type": "Hardware Upgrade", "source": "Hardware Upgrades", "level": "M", "has_ref": true}, {"reference": "SF-103465", "customer": "Forestry England", "location": "Leigh Woods, Great Woods", "num_machines": "4", "model": "CWT", "due_date": "14/07/2026", "allocated_to": "Emie", "status": "Completed", "order_type": "Hardware Upgrade", "source": "Hardware Upgrades", "level": "M", "has_ref": true}, {"reference": "SF-099212", "customer": "Basildon DC", "location": "Westgate CP", "num_machines": "4", "model": "CWT", "due_date": "18/06/2026", "allocated_to": "Emie", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "S", "has_ref": true}, {"reference": "SF-097511", "customer": "Yalding PC", "location": "Lees Picnic Area", "num_machines": "1", "model": "CWT", "due_date": "06/05/2026", "allocated_to": "Emie", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "M", "has_ref": true}, {"reference": "SF-098479", "customer": "Folkestone & Hythe", "location": "Sandgate CP", "num_machines": "2", "model": "CWT", "due_date": "01/06/2026", "allocated_to": "Emie", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "M", "has_ref": true}, {"reference": "FOC", "customer": "Ipswich", "location": "Various", "num_machines": "42", "model": "CWT", "due_date": "20/07/2026", "allocated_to": "Emie", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "XL", "has_ref": true}, {"reference": "FOC", "customer": "The Pevensey Town Trust", "location": "Cattle Market", "num_machines": "1", "model": "CWT", "due_date": "ASAP", "allocated_to": "Emie", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "S", "has_ref": true}, {"reference": "SF-099629", "customer": "Dartmoor National Park Authority", "location": "Various", "num_machines": "7", "model": "CWT", "due_date": "16/06/2026", "allocated_to": "Emie", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "M", "has_ref": true}, {"reference": "FOC", "customer": "Forestry England", "location": "Various", "num_machines": "14", "model": "CWT", "due_date": "01/07/2026", "allocated_to": "Emie", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "M", "has_ref": true}, {"reference": "Ipswich BC", "customer": "Ipswich BC", "location": "Various", "num_machines": "9", "model": "CWT", "due_date": "04/08/2026", "allocated_to": "Emie", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "XS", "has_ref": false}, {"reference": "SF-099213", "customer": "Kenden Parking", "location": "Station Approach", "num_machines": "4", "model": "CWT/MP104", "due_date": "17/7/2026", "allocated_to": "Emie", "status": "Completed", "order_type": "Change Request", "source": "Change Requests", "level": "M", "has_ref": true}];
+const LH = {XS:1,S:2,M:4,L:8,XL:16};
+const CAP2W = 75;
+
+function esc(s){
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')
+                      .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function daysLabel(j){
+  if(j.unscheduled||j.days_left===null||j.days_left===undefined)
+    return '<span class="mut">No date</span>';
+  if(j.overdue) return '<span class="ovdt">'+Math.abs(j.days_left)+'d overdue</span>';
+  if(j.days_left===0) return '<span class="ambt">Due today</span>';
+  if(j.days_left<=5)  return '<span class="ambt">'+j.days_left+'d left</span>';
+  return '<span class="okt">'+j.days_left+'d</span>';
+}
+
+function typeBadge(t){
+  if(t==='New Machine Order') return '<span class="b bnmo">NMO</span>';
+  if(t==='Hardware Upgrade')  return '<span class="b bhw">HW</span>';
+  return '<span class="b bcr">CR</span>';
+}
+
+function levelBadge(l){
+  if(!l) return '<span class="mut">&mdash;</span>';
+  return '<span class="b bl">'+esc(l)+' &middot; '+(LH[l.toUpperCase()]||'?')+'h</span>';
+}
+
+function getBand(j){
+  if(j.unscheduled||j.days_left===null||j.days_left===undefined) return 'unscheduled';
+  if(j.overdue)        return 'overdue';
+  if(j.days_left<7)    return 'thisweek';
+  if(j.days_left<14)   return 'next2w';
+  return 'later';
+}
+
+function rowCls(j){
+  if(j.order_type==='New Machine Order') return 'rnmo';
+  if(j.order_type==='Hardware Upgrade')  return 'rhw';
+  return 'rcr';
+}
+
+// ── Priorities ──────────────────────────────────────────────────────────────
+function renderPriorities(){
+  const pjobs = JOBS.filter(j=>!j.unscheduled&&(j.overdue||(j.days_left!==null&&j.days_left<14)))
+    .sort((a,b)=>{
+      if(a.overdue&&!b.overdue) return -1;
+      if(!a.overdue&&b.overdue) return 1;
+      const ad=a.days_left!==null?a.days_left:9999;
+      const bd=b.days_left!==null?b.days_left:9999;
+      return ad-bd;
+    });
+
+  document.getElementById('p-cnt').textContent=pjobs.length;
+
+  // Capacity
+  const comm=pjobs.reduce((s,j)=>{
+    if((j.status||'').toLowerCase()==='queued') return s;
+    return s+(LH[(j.level||'').toUpperCase()]||0);
+  },0);
+  const pct=Math.min(100,Math.round(comm/CAP2W*100));
+  const fc=pct>=100?'var(--red)':pct>=70?'var(--amber)':'var(--green)';
+  const free=Math.max(0,CAP2W-comm);
+
+  let html='<div class="cap"><div class="cap-lbl">Capacity &mdash; Next 2 Weeks</div>';
+  html+='<div class="cap-bg"><div class="cap-fill" style="width:'+pct+'%;background:'+fc+'"></div></div>';
+  html+='<div class="cap-txt"><strong>'+comm+'h</strong> committed of <strong>'+CAP2W+'h</strong> available &mdash; <strong style="color:'+fc+'">'+free+'h free</strong></div></div>';
+
+  if(!pjobs.length){
+    html+='<div class="p-empty">&#10003; Nothing due in the next 2 weeks &mdash; you're on top of it!</div>';
+  } else {
+    html+='<div class="pg">';
+    pjobs.forEach(j=>{
+      const tc=j.order_type==='New Machine Order'?'tnmo':j.order_type==='Hardware Upgrade'?'thw':'tcr';
+      const oc=j.overdue?' ovd':'';
+      const nmo=j.order_type==='New Machine Order'?
+        '<div class="nmo-call"><strong>&#9888; New Machine Order</strong> &mdash; This is a larger, more complex job. '+
+        'Brand new hardware has been purchased and the customer has higher expectations. '+
+        'Allow extra time for testing, edge cases, and proactive communication.</div>':'' ;
+      const ref=j.onecrmlink?
+        '<a href="'+esc(j.onecrmlink)+'" target="_blank">'+esc(j.reference)+'</a>':esc(j.reference);
+      const sla=j.sla_breach?'<span class="b bs">&thinsp;&#9888; SLA</span>':'';
+      const cmt=j.comments?'<div class="pc-cmt" title="'+esc(j.comments)+'">'+esc(j.comments)+'</div>':'';
+      html+=
+        '<div class="pc '+tc+oc+'">'+
+          '<div class="pc-type">'+esc(j.order_type)+'</div>'+
+          nmo+
+          '<div class="pc-ref">'+ref+'</div>'+
+          '<div class="pc-cust">'+esc(j.customer)+'</div>'+
+          '<div class="pc-meta">'+levelBadge(j.level)+' '+daysLabel(j)+
+            ' <span class="b bst">'+esc(j.status)+'</span>'+sla+'</div>'+
+          '<div class="pc-due">'+(j.due_date?'Due: '+esc(j.due_date):'No date set')+'</div>'+
+          cmt+
+        '</div>';
+    });
+    html+='</div>';
+  }
+
+  document.getElementById('priorities-content').innerHTML=html;
+}
+
+// ── Jobs table ───────────────────────────────────────────────────────────────
+let sCol='due_date_iso', sDir=1;
+const BANDS=['overdue','thisweek','next2w','later','unscheduled'];
+const BLBL={overdue:'&#9888; Overdue',thisweek:'This Week',next2w:'Next 2 Weeks',later:'Later',unscheduled:'Unscheduled'};
+const BCL={overdue:'band-ovd',thisweek:'band-tw',next2w:'band-n2w',later:'band-lt',unscheduled:'band-un'};
+
+function sortedJobs(jobs){
+  return [...jobs].sort((a,b)=>{
+    let av=a[sCol]||'', bv=b[sCol]||'';
+    if(!av&&bv) return 1; if(av&&!bv) return -1;
+    if(sCol==='days_left'){av=a.days_left!==null?a.days_left:9999;bv=b.days_left!==null?b.days_left:9999;}
+    if(sCol==='level'){const O={XS:1,S:2,M:3,L:4,XL:5};av=O[(a.level||'').toUpperCase()]||0;bv=O[(b.level||'').toUpperCase()]||0;}
+    return av<bv?-sDir:av>bv?sDir:0;
+  });
+}
+
+function filteredJobs(){
+  const ft=document.getElementById('f-type').value;
+  const fs=document.getElementById('f-status').value;
+  const fp=document.getElementById('f-period').value;
+  return JOBS.filter(j=>{
+    if(ft!=='all'){
+      if(ft==='nmo'&&j.order_type!=='New Machine Order') return false;
+      if(ft==='hw' &&j.order_type!=='Hardware Upgrade')  return false;
+      if(ft==='cr' &&j.order_type!=='Change Request')    return false;
+    }
+    if(fs!=='all'&&(j.status||'').toLowerCase()!==fs) return false;
+    if(fp!=='all'&&getBand(j)!==fp) return false;
+    return true;
+  });
+}
+
+function jobRow(j){
+  const ref=j.onecrmlink?
+    '<a href="'+esc(j.onecrmlink)+'" target="_blank">'+esc(j.reference)+'</a>':esc(j.reference);
+  const sla=j.sla_breach?'<span class="b bs" title="Go Live past SLA deadline">&#9888; SLA</span>':'';
+  const loc=j.location?'<br><span style="font-size:.72rem;color:var(--muted)">'+esc(j.location)+'</span>':'';
+  return '<tr class="'+rowCls(j)+'">'+
+    '<td class="rc">'+ref+'</td>'+
+    '<td>'+typeBadge(j.order_type)+'</td>'+
+    '<td>'+esc(j.customer)+loc+'</td>'+
+    '<td>'+levelBadge(j.level)+'</td>'+
+    '<td>'+(j.due_date?esc(j.due_date):'<span class="mut">&mdash;</span>')+'</td>'+
+    '<td class="dc">'+daysLabel(j)+'</td>'+
+    '<td><span class="b bst">'+esc(j.status)+'</span></td>'+
+    '<td>'+sla+'</td>'+
+    '<td class="cc" title="'+esc(j.comments)+'">'+esc(j.comments)+'</td>'+
+  '</tr>';
+}
+
+function renderJobs(){
+  const fj=filteredJobs();
+  const sj=sortedJobs(fj);
+  const isGrouped=(
+    document.getElementById('f-type').value==='all'&&
+    document.getElementById('f-status').value==='all'&&
+    document.getElementById('f-period').value==='all'&&
+    sCol==='due_date_iso'
+  );
+
+  document.getElementById('j-cnt').textContent=fj.length;
+  const el=document.getElementById('jobs-table');
+
+  if(!sj.length){
+    el.innerHTML='<div class="empty">No jobs match the current filters.</div>';
+    return;
+  }
+
+  const thead='<thead><tr>'+
+    ['reference','order_type','customer','level','due_date_iso','days_left','status','','comments']
+    .map((c,i)=>{
+      const labels=['Reference','Type','Customer','Level','Due Date','Days','Status','SLA','Comments'];
+      const cls=c===sCol?(sDir===1?' class="sa"':' class="sd"'):'';
+      const dc=c?(' data-col="'+c+'"'):'';
+      return '<th'+cls+dc+'>'+labels[i]+'</th>';
+    }).join('')+'</tr></thead>';
+
+  let body='<tbody>';
+  if(isGrouped){
+    const grp={};BANDS.forEach(b=>grp[b]=[]);
+    sj.forEach(j=>grp[getBand(j)].push(j));
+    BANDS.forEach(b=>{
+      if(!grp[b].length) return;
+      body+='<tr class="band-row '+BCL[b]+'"><td colspan="9">'+BLBL[b]+' ('+grp[b].length+')</td></tr>';
+      body+=grp[b].map(jobRow).join('');
+    });
+  } else {
+    body+=sj.map(jobRow).join('');
+  }
+  body+='</tbody>';
+
+  el.innerHTML='<div class="tbl-wrap"><table>'+thead+body+'</table></div>';
+
+  el.querySelectorAll('th[data-col]').forEach(th=>{
+    th.addEventListener('click',()=>{
+      if(sCol===th.dataset.col) sDir*=-1;
+      else{sCol=th.dataset.col;sDir=1;}
+      renderJobs();
+    });
+  });
+}
+
+// ── Completed ────────────────────────────────────────────────────────────────
+function renderCompleted(){
+  document.getElementById('c-cnt').textContent=COMPLETED.length;
+  const el=document.getElementById('comp-table');
+  if(!COMPLETED.length){
+    el.innerHTML='<div class="empty">No completed jobs yet.</div>';
+    return;
+  }
+  const sorted=[...COMPLETED].sort((a,b)=>(b.due_date||'').localeCompare(a.due_date||''));
+  let html='<div class="comp-wrap"><table>'+
+    '<thead><tr><th>Reference</th><th>Type</th><th>Customer</th><th>Level</th><th>Completed</th></tr></thead><tbody>';
+  sorted.forEach(j=>{
+    html+='<tr>'+
+      '<td class="rc">'+esc(j.reference)+'</td>'+
+      '<td>'+typeBadge(j.order_type)+'</td>'+
+      '<td>'+esc(j.customer)+'</td>'+
+      '<td>'+levelBadge(j.level)+'</td>'+
+      '<td>'+(j.due_date?esc(j.due_date):'<span class="mut">&mdash;</span>')+'</td>'+
+    '</tr>';
+  });
+  html+='</tbody></table></div>';
+  el.innerHTML=html;
+}
+
+// ── Status filter options ────────────────────────────────────────────────────
+(function(){
+  const statuses=[...new Set(JOBS.map(j=>j.status).filter(Boolean))].sort();
+  const sel=document.getElementById('f-status');
+  statuses.forEach(s=>{
+    const o=document.createElement('option');
+    o.value=s.toLowerCase();o.textContent=s;sel.appendChild(o);
+  });
+})();
+
+// ── Filter/sort events ───────────────────────────────────────────────────────
+['f-type','f-status','f-period'].forEach(id=>{
+  document.getElementById(id).addEventListener('change',renderJobs);
+});
+document.getElementById('f-reset').addEventListener('click',()=>{
+  document.getElementById('f-type').value='all';
+  document.getElementById('f-status').value='all';
+  document.getElementById('f-period').value='all';
+  sCol='due_date_iso';sDir=1;
+  renderJobs();
+});
+
+// ── Nav highlight on scroll ──────────────────────────────────────────────────
+const _secs=['priorities','jobs','completed'];
+const _nl={};
+_secs.forEach(id=>{_nl[id]=document.querySelector('.nav a[href="#'+id+'"]');});
+window.addEventListener('scroll',()=>{
+  let cur=_secs[0];
+  _secs.forEach(id=>{
+    const el=document.getElementById(id);
+    if(el&&el.getBoundingClientRect().top<=80) cur=id;
+  });
+  _secs.forEach(id=>{if(_nl[id])_nl[id].classList.toggle('act',id===cur);});
+},{passive:true});
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+renderPriorities();
+renderJobs();
+renderCompleted();
+</script>
+</body>
+</html>
