@@ -7,35 +7,96 @@
 <script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <style>
 [data-netlify-identity-button]{display:none!important}
-:root{--bg:#0e0e20;--bg2:#13132e;--text:#d8d8f0;--muted:#8888c0;--pink:#e91e8c;--border:#26265a}
-[data-theme="light"]{--bg:#f0f0f8;--bg2:#ffffff;--text:#1a1a3a;--muted:#5050a0;--border:#d0d0e8}
+:root{--bg:#0e0e20;--bg2:#13132e;--text:#d8d8f0;--muted:#8888c0;--pink:#e91e8c;--border:#26265a;
+      --surface:#161927;--green:#22c55e;--green-soft:rgba(34,197,94,.12);--pink-soft:rgba(233,30,140,.1);--pink-soft2:rgba(233,30,140,.18)}
+[data-theme="light"]{--bg:#f0f0f8;--bg2:#ffffff;--text:#1a1a3a;--muted:#5050a0;--border:#d0d0e8;
+                     --surface:#ffffff;--pink-soft:rgba(233,30,140,.07);--pink-soft2:rgba(233,30,140,.14);--green-soft:rgba(34,197,94,.1)}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-     background:var(--bg);color:var(--text);display:flex;flex-direction:column;
-     align-items:center;justify-content:center;min-height:100vh;padding:24px}
-h1{font-size:1.6rem;font-weight:700;margin-bottom:6px}
-.sub{color:var(--muted);font-size:.82rem;margin-bottom:36px;text-align:center}
-.links{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;max-width:520px}
-.member-link{display:flex;align-items:center;gap:12px;background:var(--bg2);
-             border:1px solid var(--border);border-radius:10px;padding:14px 22px;
-             text-decoration:none;color:var(--text);transition:all .15s;min-width:150px}
-.member-link:hover{border-color:var(--pink);color:#fff;background:#1e1e48}
-[data-theme="light"] .member-link:hover{color:var(--text);background:#e8e8f8}
-.mi{width:34px;height:34px;background:var(--pink);border-radius:50%;display:flex;
-    align-items:center;justify-content:center;font-weight:700;font-size:.95rem;color:#fff;flex-shrink:0}
-.mn{font-weight:600;font-size:.95rem}
-footer{margin-top:40px;color:var(--muted);font-size:.72rem;text-align:center}
-.theme-btn{position:fixed;top:16px;right:16px;background:none;border:1px solid var(--border);
-           color:var(--muted);padding:6px 12px;border-radius:6px;font-size:.76rem;cursor:pointer}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── Top bar ── */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--border)}
+.topbar-title{font-size:1.05rem;font-weight:700}
+.topbar-sub{font-size:.75rem;color:var(--muted);margin-top:1px}
+.theme-btn{background:none;border:1px solid var(--border);color:var(--muted);padding:5px 11px;border-radius:6px;font-size:.74rem;cursor:pointer}
 .theme-btn:hover{border-color:var(--pink);color:var(--pink)}
+
+/* ── Tabs ── */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);padding:0 24px}
+.tab-btn{background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);
+         padding:12px 18px;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .15s;margin-bottom:-1px}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.active{color:var(--pink);border-bottom-color:var(--pink)}
+
+/* ── Team tab ── */
+#tab-team{display:flex;flex-direction:column;align-items:center;padding:40px 24px 60px}
+.links{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;max-width:520px;margin-bottom:32px}
+.member-link{display:flex;align-items:center;gap:12px;background:var(--bg2);border:1px solid var(--border);
+             border-radius:10px;padding:14px 22px;text-decoration:none;color:var(--text);transition:all .15s;min-width:150px}
+.member-link:hover{border-color:var(--pink);background:var(--pink-soft2)}
+.mi{width:34px;height:34px;background:var(--pink);border-radius:50%;display:flex;align-items:center;
+    justify-content:center;font-weight:700;font-size:.95rem;color:#fff;flex-shrink:0}
+.mn{font-weight:600;font-size:.95rem}
+.team-footer{color:var(--muted);font-size:.72rem;text-align:center}
+
+/* ── About tab ── */
+#tab-about{display:none;padding:40px 24px 60px;max-width:720px;margin:0 auto}
+.intro{background:var(--pink-soft2);border:1px solid rgba(233,30,140,.25);border-radius:12px;
+       padding:18px 20px;margin-bottom:28px;font-size:14.5px;line-height:1.6}
+.intro strong{color:var(--pink)}
+.section{margin-bottom:28px}
+.section-label{font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--pink);margin-bottom:12px}
+.steps{display:flex;flex-direction:column;gap:10px}
+.step{display:flex;gap:14px;align-items:flex-start;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.step-num{flex-shrink:0;width:26px;height:26px;background:var(--pink);color:#fff;border-radius:50%;
+          display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;margin-top:1px}
+.step-body{flex:1}
+.step-body strong{font-size:14px;display:block;margin-bottom:3px}
+.step-body span{font-size:13px;color:var(--muted)}
+.url{font-family:'Courier New',monospace;font-size:12px;background:var(--bg);border:1px solid var(--border);
+     border-radius:5px;padding:3px 7px;display:inline-block;margin-top:5px;color:var(--pink);word-break:break-all}
+.features{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:500px){.features{grid-template-columns:1fr}}
+.feature{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.feature-title{font-size:13px;font-weight:700;margin-bottom:4px}
+.feature-desc{font-size:12.5px;color:var(--muted);line-height:1.5}
+.badge{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+       padding:2px 7px;border-radius:4px;background:var(--pink-soft);color:var(--pink);display:inline-block;margin-bottom:7px}
+.badge.green{background:var(--green-soft);color:var(--green)}
+.member-list{display:flex;flex-direction:column;gap:8px}
+.member-row{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 14px}
+.member-avatar{width:34px;height:34px;background:var(--pink);color:#fff;border-radius:50%;
+               display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.member-avatar.bo{background:#7c3aed}
+.member-name{font-size:14px;font-weight:600}
+.member-type{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:1px}
+.member-link-sm{font-family:'Courier New',monospace;font-size:11.5px;color:var(--pink);text-decoration:none;
+                background:var(--pink-soft);padding:4px 9px;border-radius:6px;white-space:nowrap}
+.member-link-sm:hover{background:var(--pink-soft2)}
+.security{background:var(--green-soft);border:1px solid rgba(34,197,94,.2);border-radius:10px;
+          padding:14px 16px;display:flex;gap:12px;align-items:flex-start;font-size:13.5px}
+.security-text{line-height:1.5}
+.security-text strong{color:var(--green)}
+.divider{border:none;border-top:1px solid var(--border);margin:24px 0}
 </style>
 </head>
 <body>
-<button class="theme-btn" id="theme-btn" onclick="toggleTheme()">&#9728; Light</button>
-<h1>Team Planner</h1>
-<div class="sub">Software Customisations &mdash; Flowbird / Arrive<br>
-Refreshes hourly</div>
-<div class="links"><a href="emie.html" class="member-link"><span class="mi">E</span><span class="mn">Emie</span></a>
+<div class="topbar">
+  <div>
+    <div class="topbar-title">&#x2726; Team Planner</div>
+    <div class="topbar-sub">Software Customisations &mdash; Flowbird / Arrive</div>
+  </div>
+  <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">&#9728; Light</button>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active" id="btn-team" onclick="showTab('team')">&#128101; Team</button>
+  <button class="tab-btn" id="btn-about" onclick="showTab('about')">&#9432; About &amp; Getting Started</button>
+</div>
+
+<!-- Team tab -->
+<div id="tab-team">
+  <div class="links"><a href="emie.html" class="member-link"><span class="mi">E</span><span class="mn">Emie</span></a>
 <a href="jay.html" class="member-link"><span class="mi">J</span><span class="mn">Jay</span></a>
 <a href="rob.html" class="member-link"><span class="mi">R</span><span class="mn">Rob</span></a>
 <a href="ross.html" class="member-link"><span class="mi">R</span><span class="mn">Ross</span></a>
@@ -44,13 +105,79 @@ Refreshes hourly</div>
 <a href="tristan.html" class="member-link"><span class="mi">T</span><span class="mn">Tristan</span></a>
 <a href="joe.html" class="member-link"><span class="mi">J</span><span class="mn">Joe</span></a>
 <a href="anna.html" class="member-link"><span class="mi">A</span><span class="mn">Anna</span></a></div>
-<footer>Log in with your work email to view your jobs.<br>Data sourced from the team Google Sheet.</footer>
+  <div class="team-footer">Log in with your work email to view your jobs.<br>Data sourced from the team Google Sheet &mdash; refreshes hourly.</div>
+</div>
+
+<!-- About tab -->
+<div id="tab-about">
+  <div class="intro">
+    We've built a <strong>personal dashboard</strong> for each of you &mdash; a page you can access from anywhere (phone, home, wherever) that shows your active jobs, what's urgent, and key dates. All data comes directly from the team Google Sheet and refreshes automatically every hour. <strong>No more needing to ask Ross</strong> what's on your plate!
+  </div>
+
+  <div class="section">
+    <div class="section-label">Getting Started</div>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-body"><strong>Check your email for an invite from Netlify</strong><span>You'll receive a "You've been invited" email. Click the link and set a password &mdash; this is how you log in.</span></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><strong>Find your personal page in the list below and bookmark it</strong><span>Log in with your work email address. Your page only shows your own jobs.</span><div class="url">https://statuesque-lily-8e6e95.netlify.app/yourname.html</div></div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-body"><strong>That's it</strong><span>Data updates hourly. Nothing to install, no sheet access needed.</span></div></div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section">
+    <div class="section-label">Software Team &mdash; What You'll See</div>
+    <div class="features">
+      <div class="feature"><div class="badge">Priorities</div><div class="feature-title">Urgent jobs first</div><div class="feature-desc">Any job overdue or due within the next 2 weeks, sorted by severity.</div></div>
+      <div class="feature"><div class="badge">Active Jobs</div><div class="feature-title">Your full job list</div><div class="feature-desc">Go-live dates, job size, status, and comments &mdash; all in one place.</div></div>
+      <div class="feature"><div class="badge">Unassigned</div><div class="feature-title">Jobs needing an owner</div><div class="feature-desc">CWT and NEOPS jobs not yet allocated &mdash; useful for picking up capacity.</div></div>
+      <div class="feature"><div class="badge">Completed</div><div class="feature-title">Your history</div><div class="feature-desc">Completed jobs kept for reference, sorted by most recent.</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-label">Back Office Team (Joe &amp; Anna) &mdash; What You'll See</div>
+    <div class="features">
+      <div class="feature"><div class="badge green">Task Grid</div><div class="feature-title">Per-job task breakdown</div><div class="feature-desc">City ID, Sim, API, Alerts, Banking Port &mdash; expand any row to see task-level status.</div></div>
+      <div class="feature"><div class="badge green">SW Go Live</div><div class="feature-title">Software team's date</div><div class="feature-desc">Each job shows the software team's go-live date alongside your own deadline.</div></div>
+      <div class="feature"><div class="badge green">Team View</div><div class="feature-title">My Jobs / Team Jobs toggle</div><div class="feature-desc">Switch between your own jobs and the full Joe + Anna combined list.</div></div>
+      <div class="feature"><div class="badge green">Priorities</div><div class="feature-title">Overdue &amp; urgent first</div><div class="feature-desc">Any job with an Issue or due within 2 weeks surfaces at the top automatically.</div></div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section">
+    <div class="section-label">Your Personal Links</div>
+    <div class="member-list">
+      <div class="member-row"><div class="member-avatar">E</div><div style="flex:1"><div class="member-name">Emie</div><div class="member-type">Software</div></div><a class="member-link-sm" href="emie.html">emie.html</a></div>
+      <div class="member-row"><div class="member-avatar">J</div><div style="flex:1"><div class="member-name">Jay</div><div class="member-type">Software</div></div><a class="member-link-sm" href="jay.html">jay.html</a></div>
+      <div class="member-row"><div class="member-avatar">R</div><div style="flex:1"><div class="member-name">Rob</div><div class="member-type">Software</div></div><a class="member-link-sm" href="rob.html">rob.html</a></div>
+      <div class="member-row"><div class="member-avatar">R</div><div style="flex:1"><div class="member-name">Ross</div><div class="member-type">Software</div></div><a class="member-link-sm" href="ross.html">ross.html</a></div>
+      <div class="member-row"><div class="member-avatar">S</div><div style="flex:1"><div class="member-name">Sofia</div><div class="member-type">Software</div></div><a class="member-link-sm" href="sofia.html">sofia.html</a></div>
+      <div class="member-row"><div class="member-avatar">S</div><div style="flex:1"><div class="member-name">Suna</div><div class="member-type">Software</div></div><a class="member-link-sm" href="suna.html">suna.html</a></div>
+      <div class="member-row"><div class="member-avatar">T</div><div style="flex:1"><div class="member-name">Tristan</div><div class="member-type">Software</div></div><a class="member-link-sm" href="tristan.html">tristan.html</a></div>
+      <div class="member-row"><div class="member-avatar bo">J</div><div style="flex:1"><div class="member-name">Joe</div><div class="member-type">Back Office</div></div><a class="member-link-sm" href="joe.html">joe.html</a></div>
+      <div class="member-row"><div class="member-avatar bo">A</div><div style="flex:1"><div class="member-name">Anna</div><div class="member-type">Back Office</div></div><a class="member-link-sm" href="anna.html">anna.html</a></div>
+    </div>
+  </div>
+
+  <hr class="divider">
+  <div class="security"><span style="font-size:18px;flex-shrink:0">&#128274;</span><div class="security-text"><strong>Your data is private.</strong> Each page is password-protected and only shows your own jobs &mdash; nobody can see anyone else's page. Log in with your work email address.</div></div>
+</div>
+
 <script>
 (function(){var t=localStorage.getItem('planner_theme')||'dark';document.documentElement.setAttribute('data-theme',t);var b=document.getElementById('theme-btn');if(b)b.innerHTML=t==='dark'?'&#9728; Light':'&#9790; Dark';})();
 function toggleTheme(){var t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',t);localStorage.setItem('planner_theme',t);var b=document.getElementById('theme-btn');if(b)b.innerHTML=t==='dark'?'&#9728; Light':'&#9790; Dark';}
-if(window.netlifyIdentity){
-  netlifyIdentity.on('init', function(){});
+function showTab(name){
+  document.getElementById('tab-team').style.display=name==='team'?'flex':'none';
+  document.getElementById('tab-about').style.display=name==='about'?'block':'none';
+  document.getElementById('btn-team').classList.toggle('active',name==='team');
+  document.getElementById('btn-about').classList.toggle('active',name==='about');
+  localStorage.setItem('planner_tab',name);
 }
+(function(){var t=localStorage.getItem('planner_tab')||'team';showTab(t);})();
+if(window.netlifyIdentity){netlifyIdentity.on('init',function(){});}
 </script>
 </body>
 </html>
