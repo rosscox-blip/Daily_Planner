@@ -293,7 +293,7 @@ footer{text-align:center;padding:24px 16px;color:var(--muted);font-size:.72rem;
     </div>
     <div class="hdr-ts">
       <span id="current-time" class="cur-time">--:--</span>
-      <span class="upd-time">28 Jul 2026, 16:18</span>
+      <span class="upd-time" id="data-fetched-ts"></span>
       <small>Updates hourly</small>
     </div>
     <button id="theme-btn" class="theme-btn" onclick="toggleTheme()">&#9728; Light</button>
@@ -380,7 +380,7 @@ footer{text-align:center;padding:24px 16px;color:var(--muted);font-size:.72rem;
 
 <footer>
   Daily Planner &mdash; Software Customisations &mdash; Flowbird / Arrive &nbsp;&middot;&nbsp;
-  Last updated 28 Jul 2026, 16:18 &nbsp;&middot;&nbsp; Updates hourly
+  Updates hourly
 </footer>
 
 <script>
@@ -482,6 +482,8 @@ function _loadData(user){
     UNASSIGNED_CWT   = data.unassigned_cwt   || [];
     UNASSIGNED_NEOPS = data.unassigned_neops || [];
     _loadOverlay.style.display='none';
+    var _ts=document.getElementById('data-fetched-ts');
+    if(_ts)_ts.textContent='Fetched '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
     _populateStatusFilter();
     renderPriorities();
     renderJobs();

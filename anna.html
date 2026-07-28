@@ -165,7 +165,7 @@ footer{text-align:center;padding:24px 16px;color:var(--muted);font-size:.72rem;
     <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">&#9728; Light</button>
     <div class="hdr-ts">
       <span class="cur-time" id="current-time">--:--</span>
-      <span>Updated 28 Jul 2026, 16:18</span>
+      <span id="data-fetched-ts"></span>
     </div>
   </div>
 </header>
@@ -287,6 +287,8 @@ function _loadData(user){
     ALL_JOBS      = data.all_jobs      || JOBS;
     ALL_COMPLETED = data.all_completed || COMPLETED;
     _loadOverlay.style.display='none';
+    var _ts=document.getElementById('data-fetched-ts');
+    if(_ts)_ts.textContent='Fetched '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
     renderPriorities();
     renderJobs();
     renderCompleted();
