@@ -475,10 +475,17 @@ function _loadData(user){
   var token=user.token.access_token;
   fetch('/.netlify/functions/jobs?member=jay',{headers:{'Authorization':'Bearer '+token}})
   .then(function(r){
+    if(r.status===401){
+      netlifyIdentity.logout();
+      _loadOverlay.style.display='none';
+      _showLogin();
+      return null;
+    }
     if(!r.ok) throw new Error('HTTP '+r.status);
     return r.json();
   })
   .then(function(data){
+    if(!data) return;
     JOBS             = data.jobs             || [];
     COMPLETED        = data.completed        || [];
     UNASSIGNED_CWT   = data.unassigned_cwt   || [];

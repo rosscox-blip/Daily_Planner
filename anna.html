@@ -282,8 +282,18 @@ function _loadData(user){
   _navSignout.style.display='inline-block';
   var token=user.token.access_token;
   fetch('/.netlify/functions/jobs?member=anna',{headers:{'Authorization':'Bearer '+token}})
-  .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
+  .then(function(r){
+    if(r.status===401){
+      netlifyIdentity.logout();
+      _loadOverlay.style.display='none';
+      _showLogin();
+      return null;
+    }
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    return r.json();
+  })
   .then(function(data){
+    if(!data)return;
     JOBS          = data.jobs          || [];
     COMPLETED     = data.completed     || [];
     ALL_JOBS      = data.all_jobs      || JOBS;
