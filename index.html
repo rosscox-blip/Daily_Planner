@@ -4,9 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Team Planner &mdash; Software Customisations</title>
-<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <style>
-[data-netlify-identity-button]{display:none!important}
 :root{--bg:#0e0e20;--bg2:#13132e;--text:#d8d8f0;--muted:#8888c0;--pink:#e91e8c;--border:#26265a;
       --surface:#161927;--green:#22c55e;--green-soft:rgba(34,197,94,.12);--pink-soft:rgba(233,30,140,.1);--pink-soft2:rgba(233,30,140,.18)}
 [data-theme="light"]{--bg:#f0f0f8;--bg2:#ffffff;--text:#1a1a3a;--muted:#5050a0;--border:#d0d0e8;
@@ -105,7 +103,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <a href="tristan.html" class="member-link"><span class="mi">T</span><span class="mn">Tristan</span></a>
 <a href="joe.html" class="member-link"><span class="mi">J</span><span class="mn">Joe</span></a>
 <a href="anna.html" class="member-link"><span class="mi">A</span><span class="mn">Anna</span></a></div>
-  <div class="team-footer">Log in with your work email to view your jobs.<br>Data sourced from the team Google Sheet &mdash; refreshes hourly.</div>
+  <div class="team-footer">Enter the team password to view your jobs.<br>Data sourced from the team Google Sheet &mdash; refreshes hourly.</div>
 </div>
 
 <!-- About tab -->
@@ -117,8 +115,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <div class="section">
     <div class="section-label">Getting Started</div>
     <div class="steps">
-      <div class="step"><div class="step-num">1</div><div class="step-body"><strong>Check your email for an invite from Netlify</strong><span>You'll receive a "You've been invited" email. Click the link and set a password &mdash; this is how you log in.</span></div></div>
-      <div class="step"><div class="step-num">2</div><div class="step-body"><strong>Find your personal page in the list below and bookmark it</strong><span>Log in with your work email address. Your page only shows your own jobs.</span><div class="url">https://statuesque-lily-8e6e95.netlify.app/yourname.html</div></div></div>
+      <div class="step"><div class="step-num">1</div><div class="step-body"><strong>Get the team password from Ross</strong><span>There's one shared password for the whole team &mdash; ask Ross if you don't have it yet.</span></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-body"><strong>Find your personal page in the list below and bookmark it</strong><span>Each person has their own page. Enter the team password when prompted &mdash; your browser remembers it after that.</span><div class="url">https://rosscox-blip.github.io/Daily_Planner/yourname.html</div></div></div>
       <div class="step"><div class="step-num">3</div><div class="step-body"><strong>That's it</strong><span>Data updates hourly. Nothing to install, no sheet access needed.</span></div></div>
     </div>
   </div>
@@ -163,7 +161,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   </div>
 
   <hr class="divider">
-  <div class="security"><span style="font-size:18px;flex-shrink:0">&#128274;</span><div class="security-text"><strong>Your data is private.</strong> Each page is password-protected and only shows your own jobs &mdash; nobody can see anyone else's page. Log in with your work email address.</div></div>
+  <div class="security"><span style="font-size:18px;flex-shrink:0">&#128274;</span><div class="security-text"><strong>Your data is private.</strong> Each page is protected by a shared team password and only shows your own jobs. The password is remembered in your browser after the first sign-in.</div></div>
 </div>
 
 <script>
@@ -177,7 +175,6 @@ function showTab(name){
   localStorage.setItem('planner_tab',name);
 }
 (function(){var t=localStorage.getItem('planner_tab')||'team';showTab(t);})();
-if(window.netlifyIdentity){netlifyIdentity.on('init',function(){});}
 </script>
 </body>
 </html>

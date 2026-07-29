@@ -4,10 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Rob &mdash; Work Planner</title>
-<script src="https://identity.netlify.com/v1/netlify-identity-widget.js"></script>
 <style>
-[data-netlify-identity-button]{display:none!important}
-
 /* ── Design tokens ───────────────────────────────────────────── */
 :root{
   --bg:#0d0d1f;--bg2:#14142e;--card:#1c1c40;--border:#2a2a58;
@@ -42,15 +39,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
   display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff}
 #auth-name{font-size:1.1rem;font-weight:700}
 #auth-sub{color:var(--muted);font-size:.82rem;line-height:1.5}
-#auth-login-btn{width:100%;background:var(--pink);color:#fff;border:none;
+#auth-pw-input{width:100%;padding:10px 12px;border-radius:7px;font-size:.9rem;
+  border:1px solid var(--border);background:var(--bg);color:var(--text);outline:none;transition:border .15s}
+#auth-pw-input:focus{border-color:var(--pink)}
+#auth-pw-submit{width:100%;background:var(--pink);color:#fff;border:none;
   padding:11px;border-radius:7px;font-size:.9rem;font-weight:700;cursor:pointer;transition:opacity .15s}
-#auth-login-btn:hover{opacity:.85}
-#auth-wrong{display:none;flex-direction:column;gap:10px;width:100%;align-items:center}
-#auth-wrong p{font-size:.8rem;color:var(--muted);line-height:1.4}
-#auth-wrong a{color:var(--pink);font-weight:700;font-size:.8rem}
-#auth-logout-btn{background:none;border:1px solid var(--border);color:var(--muted);
-  padding:7px 18px;border-radius:6px;font-size:.8rem;cursor:pointer}
-#auth-logout-btn:hover{border-color:var(--red);color:var(--red)}
+#auth-pw-submit:hover{opacity:.85}
+#auth-pw-err{color:var(--red);font-size:.8rem;text-align:center}
 
 /* ── Loading overlay ─────────────────────────────────────────── */
 #load-overlay{position:fixed;inset:0;background:rgba(8,8,22,.92);
@@ -274,12 +269,10 @@ footer{text-align:center;padding:24px 16px;color:var(--muted);font-size:.72rem;
   <div id="auth-box">
     <div id="auth-avatar">R</div>
     <div id="auth-name">Rob</div>
-    <div id="auth-sub">Log in with your work email to view your planner</div>
-    <button id="auth-login-btn">Log in with email</button>
-    <div id="auth-wrong">
-      <p id="auth-wrong-msg"></p>
-      <button id="auth-logout-btn">Sign out</button>
-    </div>
+    <div id="auth-sub">Enter team password to view your planner</div>
+    <input type="password" id="auth-pw-input" placeholder="Team password" autocomplete="current-password">
+    <button id="auth-pw-submit">Sign In</button>
+    <div id="auth-pw-err" style="display:none">Incorrect password</div>
   </div>
 </div>
 
@@ -291,7 +284,7 @@ footer{text-align:center;padding:24px 16px;color:var(--muted);font-size:.72rem;
 
 <header class="hdr">
   <div class="hdr-inner">
-    <a id="back-btn" class="back-btn" href="index.html">&#8592; All Members</a>
+    <a id="back-btn" class="back-btn visible" href="index.html">&#8592; All Members</a>
     <div class="avatar" id="member-avatar" title="Click to change colour">R</div>
     <input type="color" id="avatar-color-picker">
     <div>
@@ -434,7 +427,6 @@ setInterval(_tick,30000);
 })();
 
 // ── Data (populated after auth + fetch) ───────────────────────────────────────
-var MEMBER_EMAIL = 'robert.smith@arrive.com';
 var MEMBER_CATEGORY = 'NEOPS';
 var JOBS = [], COMPLETED = [], UNASSIGNED_CWT = [], UNASSIGNED_NEOPS = [];
 var LH = {"XS": 1, "S": 2, "M": 4, "L": 8, "XL": 16};
@@ -442,68 +434,52 @@ const CAP2W = 60;
 var CHANGELOG = [];
 
 // ── Auth & data loading ───────────────────────────────────────────────────────
-var _authOverlay  = document.getElementById('auth-overlay');
-var _loadOverlay  = document.getElementById('load-overlay');
-var _authSub      = document.getElementById('auth-sub');
-var _authWrong    = document.getElementById('auth-wrong');
-var _authWrongMsg = document.getElementById('auth-wrong-msg');
-var _loginBtn     = document.getElementById('auth-login-btn');
-var _logoutBtn    = document.getElementById('auth-logout-btn');
-var _navEmail     = document.getElementById('nav-user-email');
-var _navSignout   = document.getElementById('nav-signout-btn');
+var _authOverlay = document.getElementById('auth-overlay');
+var _loadOverlay = document.getElementById('load-overlay');
+var _navSignout  = document.getElementById('nav-signout-btn');
+var PW_HASH = '77664a91b4f3793e85e45f2805394b605ff674d9a733952fa8d9173abfaab1ed';
 
-function _showLogin(){
-  _authSub.style.display='';
-  _loginBtn.style.display='';
-  _authWrong.style.display='none';
+async function _sha256(s){
+  var b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));
+  return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,'0')}).join('');
+}
+async function _checkAuth(){
+  var stored=localStorage.getItem('fp_auth');
+  if(stored&&stored===PW_HASH){_loadData();return;}
   _authOverlay.style.display='flex';
 }
-
-function _showWrongUser(email){
-  _authSub.style.display='none';
-  _loginBtn.style.display='none';
-  _authWrongMsg.textContent='You are signed in as '+email+'. This page belongs to Rob.';
-  _authWrong.style.display='flex';
-  _authOverlay.style.display='flex';
-}
-
-var ADMIN_EMAIL='ross.cox@arrive.com';
-function _loadData(user){
-  var isAdmin=user.email.toLowerCase()===ADMIN_EMAIL.toLowerCase();
-  if(!isAdmin&&user.email.toLowerCase()!==MEMBER_EMAIL.toLowerCase()){
-    _showWrongUser(user.email);
-    return;
+document.getElementById('auth-pw-input').addEventListener('keydown',function(e){
+  if(e.key==='Enter')document.getElementById('auth-pw-submit').click();
+});
+document.getElementById('auth-pw-submit').addEventListener('click',async function(){
+  var pw=document.getElementById('auth-pw-input').value;
+  var h=await _sha256(pw);
+  if(h===PW_HASH){
+    localStorage.setItem('fp_auth',h);
+    _authOverlay.style.display='none';
+    _navSignout.style.display='inline-block';
+    _loadData();
+  }else{
+    document.getElementById('auth-pw-err').style.display='block';
+    document.getElementById('auth-pw-input').value='';
   }
-  _authOverlay.style.display='none';
+});
+_navSignout.addEventListener('click',function(){
+  localStorage.removeItem('fp_auth');
+  location.reload();
+});
+function _loadData(){
   _loadOverlay.style.display='flex';
-  _navEmail.textContent=isAdmin&&user.email.toLowerCase()!==MEMBER_EMAIL.toLowerCase()?'Admin: '+user.email:user.email;
-  _navSignout.style.display='inline-block';
-  if(isAdmin&&user.email.toLowerCase()!==MEMBER_EMAIL.toLowerCase()){
-    var _bb=document.getElementById('back-btn');
-    if(_bb)_bb.classList.add('visible');
-  }
-
-  var token=user.token.access_token;
-  fetch('/.netlify/functions/jobs?member=rob',{headers:{'Authorization':'Bearer '+token}})
-  .then(function(r){
-    if(r.status===401){
-      netlifyIdentity.logout();
-      _loadOverlay.style.display='none';
-      _showLogin();
-      return null;
-    }
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    return r.json();
-  })
+  fetch('data/rob.json')
+  .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
   .then(function(data){
-    if(!data) return;
     JOBS             = data.jobs             || [];
     COMPLETED        = data.completed        || [];
     UNASSIGNED_CWT   = data.unassigned_cwt   || [];
     UNASSIGNED_NEOPS = data.unassigned_neops || [];
     _loadOverlay.style.display='none';
     var _ts=document.getElementById('data-fetched-ts');
-    if(_ts)_ts.textContent='Fetched '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+    if(_ts)_ts.textContent='Updated '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
     _populateStatusFilter();
     renderPriorities();
     renderJobs();
@@ -512,25 +488,12 @@ function _loadData(user){
     renderChangelog();
   })
   .catch(function(err){
-    document.getElementById('load-msg').textContent='Failed to load data — please refresh the page.';
+    _loadOverlay.style.display='none';
+    document.getElementById('load-msg').textContent='Failed to load data — please refresh.';
     console.error(err);
   });
 }
-
-if(window.netlifyIdentity){
-  netlifyIdentity.on('init',  function(u){ if(u) _loadData(u); else _showLogin(); });
-  netlifyIdentity.on('login', function(u){ netlifyIdentity.close(); _loadData(u); });
-  netlifyIdentity.on('logout',function(){ _showLogin(); });
-  netlifyIdentity.on('close', function(){ if(!netlifyIdentity.currentUser()) _showLogin(); });
-  _loginBtn.addEventListener('click',  function(){ _authOverlay.style.display='none'; netlifyIdentity.open('login'); });
-  _logoutBtn.addEventListener('click', function(){ netlifyIdentity.logout(); });
-  _navSignout.addEventListener('click',function(){ netlifyIdentity.logout(); });
-  netlifyIdentity.init();
-} else {
-  // Local dev — hide auth & load overlays so page is usable
-  _authOverlay.style.display='none';
-  _loadOverlay.style.display='none';
-}
+window.addEventListener('load',_checkAuth);
 
 // ── Render helpers ────────────────────────────────────────────────────────────
 function esc(s){
