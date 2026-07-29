@@ -445,7 +445,12 @@ async function _sha256(s){
 }
 async function _checkAuth(){
   var stored=localStorage.getItem('fp_auth');
-  if(stored&&stored===PW_HASH){_loadData();return;}
+  if(stored&&stored===PW_HASH){
+    _authOverlay.style.display='none';
+    _navSignout.style.display='inline-block';
+    _loadData();
+    return;
+  }
   _authOverlay.style.display='flex';
 }
 document.getElementById('auth-pw-input').addEventListener('keydown',function(e){
