@@ -269,7 +269,7 @@ footer{text-align:center;padding:24px 16px;color:var(--muted);font-size:.72rem;
   <div id="auth-box">
     <div id="auth-avatar">S</div>
     <div id="auth-name">Suna</div>
-    <div id="auth-sub">Enter team password to view your planner</div>
+    <div id="auth-sub">Enter your password to view your planner</div>
     <input type="password" id="auth-pw-input" placeholder="Team password" autocomplete="current-password">
     <button id="auth-pw-submit">Sign In</button>
     <div id="auth-pw-err" style="display:none">Incorrect password</div>
@@ -437,18 +437,39 @@ var CHANGELOG = [];
 var _authOverlay = document.getElementById('auth-overlay');
 var _loadOverlay = document.getElementById('load-overlay');
 var _navSignout  = document.getElementById('nav-signout-btn');
-var PW_HASH = '77664a91b4f3793e85e45f2805394b605ff674d9a733952fa8d9173abfaab1ed';
+var MEMBER_PW_HASH = 'a91483ac7c508f4609420ca5e7df8d4fc15370506e0e9c4fa98a349f2d5cf336';
+var MASTER_PW_HASH = 'c8583891c40914b9cb80491c2e706a45ef37081f9a4b57194c50975f5f85f961';
+var _blobKey = 'm';
 
 async function _sha256(s){
   var b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));
   return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,'0')}).join('');
 }
+function _b64ToArr(b64){
+  var raw=atob(b64),arr=new Uint8Array(raw.length);
+  for(var i=0;i<raw.length;i++)arr[i]=raw.charCodeAt(i);
+  return arr;
+}
+async function _decryptBlob(blob,pw){
+  try{
+    var km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),{name:'PBKDF2'},false,['deriveKey']);
+    var key=await crypto.subtle.deriveKey(
+      {name:'PBKDF2',salt:_b64ToArr(blob.s),iterations:100000,hash:'SHA-256'},
+      km,{name:'AES-GCM',length:256},false,['decrypt']);
+    var pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:_b64ToArr(blob.i)},key,_b64ToArr(blob.c));
+    return JSON.parse(new TextDecoder().decode(pt));
+  }catch(e){return null;}
+}
 async function _checkAuth(){
-  var stored=localStorage.getItem('fp_auth');
-  if(stored&&stored===PW_HASH){
+  var stored_hash=localStorage.getItem('fp_auth');
+  var stored_pw=localStorage.getItem('fp_pw');
+  if(stored_hash&&stored_pw){
+    if(stored_hash===MEMBER_PW_HASH)      _blobKey='m';
+    else if(stored_hash===MASTER_PW_HASH) _blobKey='x';
+    else{localStorage.removeItem('fp_auth');localStorage.removeItem('fp_pw');_authOverlay.style.display='flex';return;}
     _authOverlay.style.display='none';
     _navSignout.style.display='inline-block';
-    _loadData();
+    _loadData(stored_pw);
     return;
   }
   _authOverlay.style.display='flex';
@@ -459,25 +480,39 @@ document.getElementById('auth-pw-input').addEventListener('keydown',function(e){
 document.getElementById('auth-pw-submit').addEventListener('click',async function(){
   var pw=document.getElementById('auth-pw-input').value;
   var h=await _sha256(pw);
-  if(h===PW_HASH){
-    localStorage.setItem('fp_auth',h);
-    _authOverlay.style.display='none';
-    _navSignout.style.display='inline-block';
-    _loadData();
-  }else{
+  if(h===MEMBER_PW_HASH)      _blobKey='m';
+  else if(h===MASTER_PW_HASH) _blobKey='x';
+  else{
     document.getElementById('auth-pw-err').style.display='block';
     document.getElementById('auth-pw-input').value='';
+    return;
   }
+  localStorage.setItem('fp_auth',h);
+  localStorage.setItem('fp_pw',pw);
+  _authOverlay.style.display='none';
+  _navSignout.style.display='inline-block';
+  _loadData(pw);
 });
 _navSignout.addEventListener('click',function(){
   localStorage.removeItem('fp_auth');
+  localStorage.removeItem('fp_pw');
   location.reload();
 });
-function _loadData(){
+function _loadData(pw){
   _loadOverlay.style.display='flex';
   fetch('data/suna.json')
   .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
-  .then(function(data){
+  .then(async function(enc){
+    var data=null;
+    if(enc&&enc.v===1){
+      data=await _decryptBlob(enc[_blobKey],pw);
+      if(!data){
+        localStorage.removeItem('fp_auth');localStorage.removeItem('fp_pw');
+        _loadOverlay.style.display='none';
+        _authOverlay.style.display='flex';
+        return;
+      }
+    }else{data=enc;}
     JOBS             = data.jobs             || [];
     COMPLETED        = data.completed        || [];
     UNASSIGNED_CWT   = data.unassigned_cwt   || [];
