@@ -147,7 +147,7 @@ footer{text-align:center;padding:24px 16px;color:var(--muted);font-size:.72rem;
     <div id="auth-sub">Enter your password to view your planner</div>
     <input type="password" id="auth-pw-input" placeholder="Your password" autocomplete="current-password">
     <button id="auth-pw-submit">Sign In</button>
-    <div id="auth-pw-err" style="display:none">Incorrect password</div>
+    <div id="auth-pw-err" style="display:none"></div>
   </div>
 </div>
 <div id="load-overlay">
@@ -279,7 +279,23 @@ async function _decryptBlob(blob,pw){
   }catch(e){return null;}
 }
 function _clearAuth(){localStorage.removeItem('fp_auth');localStorage.removeItem('fp_pw');localStorage.removeItem('fp_blob');}
+var _MAX_ATTEMPTS=5,_LOCKOUT_MS=120000;
+function _isLocked(){var t=sessionStorage.getItem('fp_locked');if(!t)return false;if(Date.now()-parseInt(t)<_LOCKOUT_MS)return true;sessionStorage.removeItem('fp_locked');sessionStorage.removeItem('fp_fails');return false;}
+function _lockoutSecs(){return Math.ceil((_LOCKOUT_MS-(Date.now()-parseInt(sessionStorage.getItem('fp_locked')||'0')))/1000);}
+function _recordFail(){var n=parseInt(sessionStorage.getItem('fp_fails')||'0')+1;sessionStorage.setItem('fp_fails',String(n));if(n>=_MAX_ATTEMPTS)sessionStorage.setItem('fp_locked',String(Date.now()));return n;}
+function _showErr(msg){var e=document.getElementById('auth-pw-err');e.textContent=msg;e.style.display='block';}
+function _startLockout(){
+  var inp=document.getElementById('auth-pw-input');
+  var btn=document.getElementById('auth-pw-submit');
+  inp.disabled=true;btn.disabled=true;btn.style.opacity='.5';
+  (function tick(){
+    if(!_isLocked()){inp.disabled=false;btn.disabled=false;btn.style.opacity='';document.getElementById('auth-pw-err').style.display='none';sessionStorage.removeItem('fp_fails');return;}
+    _showErr('Too many attempts — try again in '+_lockoutSecs()+'s');
+    setTimeout(tick,1000);
+  })();
+}
 async function _checkAuth(){
+  if(_isLocked()){_authOverlay.style.display='flex';_startLockout();return;}
   var stored_hash=localStorage.getItem('fp_auth');
   var stored_pw=localStorage.getItem('fp_pw');
   if(stored_hash&&stored_pw){
@@ -295,9 +311,11 @@ document.getElementById('auth-pw-input').addEventListener('keydown',function(e){
   if(e.key==='Enter')document.getElementById('auth-pw-submit').click();
 });
 document.getElementById('auth-pw-submit').addEventListener('click',async function(){
+  if(_isLocked()){_startLockout();return;}
   var pw=document.getElementById('auth-pw-input').value;
   var h=await _sha256(pw);
   if(h===MEMBER_PW_HASH){
+    sessionStorage.removeItem('fp_fails');sessionStorage.removeItem('fp_locked');
     _blobKey='m';
     localStorage.setItem('fp_auth',h);localStorage.setItem('fp_pw',pw);localStorage.setItem('fp_blob','m');
     _authOverlay.style.display='none';
@@ -305,7 +323,7 @@ document.getElementById('auth-pw-submit').addEventListener('click',async functio
     _loadData(pw);
     return;
   }
-  // Not the member password — silently try master blob (no hash exposed in source)
+  // Silently try master blob — no hash exposed in source
   _loadOverlay.style.display='flex';
   fetch('data/anna.json')
   .then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.json();})
@@ -313,6 +331,7 @@ document.getElementById('auth-pw-submit').addEventListener('click',async functio
     if(enc&&enc.v===1){
       var data=await _decryptBlob(enc.x,pw);
       if(data){
+        sessionStorage.removeItem('fp_fails');sessionStorage.removeItem('fp_locked');
         _blobKey='x';
         localStorage.setItem('fp_auth',h);localStorage.setItem('fp_pw',pw);localStorage.setItem('fp_blob','x');
         _authOverlay.style.display='none';
@@ -323,12 +342,15 @@ document.getElementById('auth-pw-submit').addEventListener('click',async functio
       }
     }
     _loadOverlay.style.display='none';
-    document.getElementById('auth-pw-err').style.display='block';
+    var n=_recordFail();
+    if(_isLocked()){_startLockout();}
+    else{_showErr('Incorrect password — '+(_MAX_ATTEMPTS-n)+' attempt'+(_MAX_ATTEMPTS-n===1?'':'s')+' remaining');}
     document.getElementById('auth-pw-input').value='';
   })
   .catch(function(){
     _loadOverlay.style.display='none';
-    document.getElementById('auth-pw-err').style.display='block';
+    var n=_recordFail();
+    if(_isLocked()){_startLockout();}else{_showErr('Incorrect password');}
     document.getElementById('auth-pw-input').value='';
   });
 });
