@@ -59,11 +59,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
 /* ── Header ──────────────────────────────────────────────────── */
 .hdr{background:var(--bg2);border-bottom:2px solid var(--pink);padding:16px 20px}
 .hdr-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.avatar-wrap{position:relative;flex-shrink:0;cursor:pointer}
+.avatar-wrap:hover .avatar{opacity:.85}
 .avatar{width:46px;height:46px;border-radius:50%;background:var(--pink);display:flex;
         align-items:center;justify-content:center;font-size:18px;font-weight:700;
-        color:#fff;flex-shrink:0;cursor:pointer;transition:opacity .15s}
-.avatar:hover{opacity:.85}
-#avatar-color-picker{position:fixed;width:0;height:0;opacity:0;pointer-events:none}
+        color:#fff;pointer-events:none;transition:opacity .15s}
+#avatar-color-picker{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;border:none;padding:0;border-radius:50%}
 .hdr-name{font-size:1.35rem;font-weight:700;color:var(--text)}
 .hdr-sub{color:var(--muted);font-size:0.78rem}
 .hdr-ts{margin-left:auto;text-align:right;font-size:0.75rem;color:var(--muted);line-height:1.7}
@@ -285,8 +286,10 @@ footer{text-align:center;padding:24px 16px;color:var(--muted);font-size:.72rem;
 <header class="hdr">
   <div class="hdr-inner">
     <a id="back-btn" class="back-btn visible" href="index.html">&#8592; All Members</a>
-    <div class="avatar" id="member-avatar" title="Click to change colour">S</div>
-    <input type="color" id="avatar-color-picker">
+    <div class="avatar-wrap" title="Click to change your accent colour">
+      <div class="avatar" id="member-avatar">S</div>
+      <input type="color" id="avatar-color-picker">
+    </div>
     <div>
       <div class="hdr-name">Suna</div>
       <div class="hdr-sub">Software Customisations &mdash; Flowbird / Arrive</div>
@@ -411,19 +414,17 @@ function _tick(){
 _tick();
 setInterval(_tick,30000);
 
-// ── Avatar colour ─────────────────────────────────────────────────────────────
+// ── Accent colour ─────────────────────────────────────────────────────────────
 (function(){
   var KEY='planner_avc_Suna';
   var c=localStorage.getItem(KEY)||'#e91e8c';
   function _apply(col){
     document.querySelectorAll('.avatar,#auth-avatar').forEach(function(a){a.style.background=col;});
+    document.documentElement.style.setProperty('--pink',col);
   }
   _apply(c);
-  var av=document.getElementById('member-avatar');
   var pk=document.getElementById('avatar-color-picker');
-  if(pk)pk.value=c;
-  if(av)av.addEventListener('click',function(){if(pk)pk.click();});
-  if(pk)pk.addEventListener('input',function(){_apply(pk.value);localStorage.setItem(KEY,pk.value);});
+  if(pk){pk.value=c;pk.addEventListener('input',function(){_apply(pk.value);localStorage.setItem(KEY,pk.value);});}
 })();
 
 // ── Data (populated after auth + fetch) ───────────────────────────────────────
