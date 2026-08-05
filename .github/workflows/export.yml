@@ -1,0 +1,51 @@
+name: Export Team Pages
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run export
+        env:
+          EMIE_PASSWORD:    ${{ secrets.EMIE_PASSWORD }}
+          JAY_PASSWORD:     ${{ secrets.JAY_PASSWORD }}
+          ROB_PASSWORD:     ${{ secrets.ROB_PASSWORD }}
+          ROSS_PASSWORD:    ${{ secrets.ROSS_PASSWORD }}
+          SOFIA_PASSWORD:   ${{ secrets.SOFIA_PASSWORD }}
+          SUNA_PASSWORD:    ${{ secrets.SUNA_PASSWORD }}
+          TRISTAN_PASSWORD: ${{ secrets.TRISTAN_PASSWORD }}
+          JOE_PASSWORD:     ${{ secrets.JOE_PASSWORD }}
+          ANNA_PASSWORD:    ${{ secrets.ANNA_PASSWORD }}
+          MASTER_PASSWORD:  ${{ secrets.MASTER_PASSWORD }}
+        run: python export_team_pages.py
+
+      - name: Commit and push
+        run: |
+          git config user.email "daily-planner@arrive.com"
+          git config user.name "Daily Planner Bot"
+          git add -A
+          if git diff --staged --quiet; then
+            echo "No changes — skipping commit"
+          else
+            git commit -m "Update team pages [skip ci]"
+            git push
+          fi
