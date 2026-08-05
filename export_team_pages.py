@@ -364,10 +364,16 @@ def _sync_source_to_repo():
     for src in (SCRIPT_DIR / 'agents').glob('*.py'):
         shutil.copy2(src, agents_dest / src.name)
 
-    # Minimal config for CI (only the constants the export script needs)
+    # Minimal config for CI — all values agents may reference
     (PAGES_DIR / 'config.py').write_text(
         f'WEEKLY_CAPACITY = {planner_config.WEEKLY_CAPACITY}\n'
-        f'LEVEL_HOURS = {json.dumps(planner_config.LEVEL_HOURS)}\n',
+        f'LEVEL_HOURS = {json.dumps(planner_config.LEVEL_HOURS)}\n'
+        'USE_MOCK_DATA = False\n'
+        'USE_MOCK_CUSTOMISATIONS = False\n'
+        'USE_MOCK_BANKING = False\n'
+        'USE_MOCK_EMAIL = False\n'
+        'USE_MOCK_SERVICENOW = False\n'
+        'USE_MOCK_PROJECTS = False\n',
         encoding='utf-8'
     )
 
