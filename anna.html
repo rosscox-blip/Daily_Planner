@@ -381,7 +381,7 @@ function _afterLoad(data){
   ALL_COMPLETED = data.all_completed || COMPLETED;
   _loadOverlay.style.display='none';
   var _ts=document.getElementById('data-fetched-ts');
-  if(_ts)_ts.textContent='Updated '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  if(_ts)_ts.textContent='Updated '+(data.generated_at||'--:--');
   renderPriorities();
   renderJobs();
   renderCompleted();

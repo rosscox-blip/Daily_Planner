@@ -544,7 +544,7 @@ function _afterLoad(data){
   UNASSIGNED_NEOPS = data.unassigned_neops || [];
   _loadOverlay.style.display='none';
   var _ts=document.getElementById('data-fetched-ts');
-  if(_ts)_ts.textContent='Updated '+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  if(_ts)_ts.textContent='Updated '+(data.generated_at||'--:--');
   _populateStatusFilter();
   renderPriorities();
   renderJobs();
