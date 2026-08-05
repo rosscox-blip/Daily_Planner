@@ -769,7 +769,7 @@ footer{text-align:center;padding:24px 16px;color:var(--muted);font-size:.72rem;
     <div class="hdr-ts">
       <span id="current-time" class="cur-time">--:--</span>
       <span class="upd-time" id="data-fetched-ts"></span>
-      <small>Updates hourly</small>
+      <small>Updates every 30 mins</small>
     </div>
     <button id="theme-btn" class="theme-btn" onclick="toggleTheme()">&#9728; Light</button>
   </div>
@@ -855,7 +855,7 @@ footer{text-align:center;padding:24px 16px;color:var(--muted);font-size:.72rem;
 
 <footer>
   Daily Planner &mdash; Software Customisations &mdash; Flowbird / Arrive &nbsp;&middot;&nbsp;
-  Updates hourly
+  Updates every 30 mins
 </footer>
 
 <script>
