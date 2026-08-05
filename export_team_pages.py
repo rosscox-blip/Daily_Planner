@@ -847,9 +847,12 @@ footer{text-align:center;padding:24px 16px;color:var(--muted);font-size:.72rem;
   </section>
 
   <section id="changelog">
-    <div class="sec-hdr"><h2>What's New</h2><span class="sec-cnt" id="cl-cnt">0</span></div>
+    <div class="sec-hdr">
+      <h2>What's New</h2><span class="sec-cnt" id="cl-cnt">0</span>
+      <button class="toggle-btn" id="cl-toggle" onclick="toggleChangelog()">Show &#9660;</button>
+    </div>
     <div class="sec-sub">Updates and changes to your planner</div>
-    <div id="changelog-content"></div>
+    <div id="changelog-content" style="display:none"></div>
   </section>
 </main>
 
@@ -1272,10 +1275,17 @@ function renderUnassigned(){
   el.innerHTML=html;
 }
 
-// ── Completed ─────────────────────────────────────────────────────────────────
+// ── Completed / Changelog toggles ─────────────────────────────────────────────
 function toggleCompleted(){
   var el=document.getElementById('comp-table');
   var btn=document.getElementById('comp-toggle');
+  var vis=el.style.display!=='none';
+  el.style.display=vis?'none':'block';
+  btn.innerHTML=vis?'Show &#9660;':'Hide &#9650;';
+}
+function toggleChangelog(){
+  var el=document.getElementById('changelog-content');
+  var btn=document.getElementById('cl-toggle');
   var vis=el.style.display!=='none';
   el.style.display=vis?'none':'block';
   btn.innerHTML=vis?'Show &#9660;':'Hide &#9650;';
