@@ -569,7 +569,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
 
 /* ── Main layout ─────────────────────────────────────────────── */
 main{max-width:1200px;margin:0 auto;padding:28px 16px}
-section{margin-bottom:52px}
+section{margin-bottom:52px;scroll-margin-top:60px}
 .sec-hdr{margin-bottom:6px;display:flex;align-items:baseline;gap:10px}
 .sec-hdr h2{font-size:1.05rem;font-weight:700;color:var(--text)}
 .sec-cnt{background:var(--pink);color:#fff;font-size:.7rem;
@@ -667,7 +667,7 @@ table{width:100%;border-collapse:collapse}
 th{padding:9px 11px;text-align:left;font-size:.7rem;text-transform:uppercase;
    letter-spacing:.05em;color:var(--muted);background:var(--bg2);
    border-bottom:1px solid var(--border);white-space:nowrap;
-   cursor:pointer;user-select:none;position:sticky;top:43px}
+   cursor:pointer;user-select:none}
 th:hover{color:var(--text)}
 th.sa::after{content:' ↑';color:var(--pink)}
 th.sd::after{content:' ↓';color:var(--pink)}
