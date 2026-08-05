@@ -398,6 +398,11 @@ def setup_git():
         _git('remote', 'set-url', 'origin', remote)
     _git('config', 'user.email', 'daily-planner@arrive.com')
     _git('config', 'user.name', 'Daily Planner')
+    # Fetch remote state so files committed directly on GitHub (e.g. workflow
+    # files) are present locally before we run git add -A. Without this, a
+    # force-push would delete anything the PAT can't re-push (workflow files).
+    _git('fetch', 'origin', 'main', check=False)
+    _git('reset', '--hard', 'origin/main', check=False)
 
 
 def push(generated_at):
