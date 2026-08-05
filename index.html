@@ -76,6 +76,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 .security-text{line-height:1.5}
 .security-text strong{color:var(--green)}
 .divider{border:none;border-top:1px solid var(--border);margin:24px 0}
+
+/* ── Changelog tab ── */
+#tab-changelog{display:none;padding:36px 24px 60px;max-width:640px;margin:0 auto}
+.cl-empty{color:var(--muted);font-size:.88rem;text-align:center;padding:40px 0}
+.cl-list{display:flex;flex-direction:column;gap:12px}
+.cl-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;display:flex;gap:14px;align-items:flex-start}
+.cl-date{font-size:11px;font-weight:700;color:var(--pink);white-space:nowrap;padding-top:2px;min-width:72px}
+.cl-body{}
+.cl-title{font-size:14px;font-weight:700;margin-bottom:3px}
+.cl-desc{font-size:13px;color:var(--muted);line-height:1.5}
 </style>
 </head>
 <body>
@@ -90,6 +100,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
 <div class="tabs">
   <button class="tab-btn active" id="btn-team" onclick="showTab('team')">&#128101; Team</button>
   <button class="tab-btn" id="btn-about" onclick="showTab('about')">&#9432; About &amp; Getting Started</button>
+  <button class="tab-btn" id="btn-changelog" onclick="showTab('changelog')">&#128203; What's New</button>
 </div>
 
 <!-- Team tab -->
@@ -164,14 +175,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;b
   <div class="security"><span style="font-size:18px;flex-shrink:0">&#128274;</span><div class="security-text"><strong>Your data is encrypted.</strong> Each page uses AES-256 encryption &mdash; your personal password is the only way to decrypt your jobs. Even the raw data files are unreadable without it. Your browser remembers the password after the first sign-in.</div></div>
 </div>
 
+<!-- Changelog tab -->
+<div id="tab-changelog">
+<div class="cl-list"><div class="cl-item"><div class="cl-date">05 Aug 2026</div><div class="cl-body"><div class="cl-title">Fixed: "Updated" timestamp was showing wrong time</div><div class="cl-desc">The timestamp at the top of your portal now shows when data was last exported, not when you refreshed the page.</div></div></div><div class="cl-item"><div class="cl-date">05 Aug 2026</div><div class="cl-body"><div class="cl-title">Accent colour picker — all portals</div><div class="cl-desc">Click your avatar circle on the login screen to change your personal accent colour. Saved in your browser.</div></div></div><div class="cl-item"><div class="cl-date">04 Aug 2026</div><div class="cl-body"><div class="cl-title">Brute-force lockout</div><div class="cl-desc">5 wrong password attempts triggers a 2-minute lockout. Prevents automated guessing. Resets when the timer expires or you close the tab.</div></div></div><div class="cl-item"><div class="cl-date">04 Aug 2026</div><div class="cl-body"><div class="cl-title">AES-256 encryption for all job data</div><div class="cl-desc">All data files are now encrypted end-to-end. Only your personal password can decrypt your jobs.</div></div></div><div class="cl-item"><div class="cl-date">01 Aug 2026</div><div class="cl-body"><div class="cl-title">Back-office: "Update Trello = Done" override</div><div class="cl-desc">For Joe & Anna — when the Update Trello column is Done the whole job is marked complete, regardless of any other task columns.</div></div></div><div class="cl-item"><div class="cl-date">30 Jul 2026</div><div class="cl-body"><div class="cl-title">Team portals launched</div><div class="cl-desc">Personal job dashboards rolled out to all team members. Updated hourly direct from the team Google Sheet.</div></div></div></div>
+</div>
+
 <script>
 (function(){var t=localStorage.getItem('planner_theme')||'dark';document.documentElement.setAttribute('data-theme',t);var b=document.getElementById('theme-btn');if(b)b.innerHTML=t==='dark'?'&#9728; Light':'&#9790; Dark';})();
 function toggleTheme(){var t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',t);localStorage.setItem('planner_theme',t);var b=document.getElementById('theme-btn');if(b)b.innerHTML=t==='dark'?'&#9728; Light':'&#9790; Dark';}
 function showTab(name){
   document.getElementById('tab-team').style.display=name==='team'?'flex':'none';
   document.getElementById('tab-about').style.display=name==='about'?'block':'none';
+  document.getElementById('tab-changelog').style.display=name==='changelog'?'block':'none';
   document.getElementById('btn-team').classList.toggle('active',name==='team');
   document.getElementById('btn-about').classList.toggle('active',name==='about');
+  document.getElementById('btn-changelog').classList.toggle('active',name==='changelog');
   localStorage.setItem('planner_tab',name);
 }
 (function(){var t=localStorage.getItem('planner_tab')||'team';showTab(t);})();
