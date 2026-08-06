@@ -379,6 +379,15 @@ def _sync_source_to_repo():
         encoding='utf-8'
     )
 
+    # requirements.txt for GitHub Actions (tzdata needed for zoneinfo on some systems)
+    (PAGES_DIR / 'requirements.txt').write_text(
+        'requests==2.32.3\n'
+        'python-dotenv==1.1.0\n'
+        'cryptography>=44.0.0\n'
+        'tzdata>=2024.1\n',
+        encoding='utf-8'
+    )
+
 
 # ── GitHub Pages deploy ───────────────────────────────────────────────────────
 
