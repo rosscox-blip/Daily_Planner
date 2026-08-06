@@ -19,6 +19,8 @@ import shutil
 import subprocess
 import sys
 from datetime import datetime
+from zoneinfo import ZoneInfo
+_TZ_LONDON = ZoneInfo('Europe/London')
 from pathlib import Path
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
@@ -300,7 +302,7 @@ def write_data_files(pages_dir: Path, all_jobs, all_completed):
             'completed': comp,
             'unassigned_cwt': cwt_jobs,
             'unassigned_neops': neops_jobs,
-            'generated_at': datetime.now().strftime('%H:%M'),
+            'generated_at': datetime.now(_TZ_LONDON).strftime('%H:%M'),
         }, member_pw)
         (data_dir / f'{lc}.json').write_text(payload, encoding='utf-8')
         print(f'  {member}: {len(jobs)} active, {len(comp)} completed, '
@@ -332,7 +334,7 @@ def write_joe_anna_data(pages_dir: Path, bo_jobs, bo_completed, all_sw_jobs):
             'completed':     comp,
             'all_jobs':      bo_jobs,
             'all_completed': bo_completed,
-            'generated_at':  datetime.now().strftime('%H:%M'),
+            'generated_at':  datetime.now(_TZ_LONDON).strftime('%H:%M'),
         }, member_pw)
         (data_dir / f'{lc}.json').write_text(payload, encoding='utf-8')
         print(f'  {member} (BO): {len(jobs)} active, {len(comp)} completed')
@@ -422,7 +424,7 @@ def push(generated_at):
 
 def main():
     _validate_passwords()
-    ts = datetime.now()
+    ts = datetime.now(_TZ_LONDON)
     generated_at = ts.strftime('%d %b %Y, %H:%M')
     print(f'[{ts:%H:%M:%S}] Fetching data from Google Sheets...')
 
